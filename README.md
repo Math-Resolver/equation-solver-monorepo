@@ -1,4 +1,4 @@
-Para rodar a api entre no diretorio src/presentation.application e rode:
+Para rodar o Backend For Frontend entre no diretorio src/equation-solver-mobile-bff/presentation.application e rode:
 ```
 python -m uvicorn main:app --reload
 ```
