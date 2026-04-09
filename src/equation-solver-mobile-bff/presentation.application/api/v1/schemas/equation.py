@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field
 
 
 class SolveEquationRequest(BaseModel):
-    equation: str = Field(min_length=3, description="Expressão da equação, ex. 2*x + 5 = 15")
-    showSteps: bool = Field(default=False)
+    equation: str = Field(min_length=3, description="Expressão da equação")
+    showSteps: bool = Field(default=True)
 
 
 class Step(BaseModel):
