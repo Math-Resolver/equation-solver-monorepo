@@ -9,7 +9,7 @@ def solve_linear(equation: str, show_steps: bool) -> SolveResult:
 
     match = re.fullmatch(r"([+-]?\d*)\*?x([+-]\d+)?=([+-]?\d+)", compact)
     if not match:
-        raise InvalidEquationError("Equação linear deve ser di seguinte formato: '2*x+5=15'")
+        raise InvalidEquationError("Equação linear deve ser do seguinte formato: '2*x+5=15'")
 
     a_raw, b_raw, c_raw = match.groups()
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
 from api.v1.schemas.equation import SolveEquationRequest, SolveEquationResponse, Step
 from services.equations.dispatcher import dispatch_solver
@@ -24,10 +24,11 @@ def _extract_username_from_request(request: Request) -> str | None:
 
 
 @router.post("/solve", response_model=SolveEquationResponse)
-async def solve_equation(payload: SolveEquationRequest, request: Request) -> SolveEquationResponse:
-    if await request.is_disconnected():
-        raise HTTPException(status_code=499, detail="Client disconnected")
-
+async def solve_equation(
+    payload: SolveEquationRequest,
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> SolveEquationResponse:
     try:
         parsed = parse_equation_input(payload.equation)
         equation_type = detect_equation_type(parsed)
@@ -51,7 +52,8 @@ async def solve_equation(payload: SolveEquationRequest, request: Request) -> Sol
 
     username = _extract_username_from_request(request)
     if username:
-        schedule_history_persistence(
+        background_tasks.add_task(
+            schedule_history_persistence,
             username=username,
             equation=payload.equation,
             result=result.result,
