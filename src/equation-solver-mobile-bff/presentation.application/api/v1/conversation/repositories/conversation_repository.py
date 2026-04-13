@@ -19,3 +19,15 @@ def get_recent_conversation_dep(
     cutoff = datetime.now(tz=timezone.utc) - timedelta(hours=12)  # noqa: F841
     user_id = current_user.user_id  # noqa: F841
     return None
+
+
+def get_past_conversations_dep(
+    current_user: AuthenticatedUser = Depends(get_current_user),
+) -> list[Conversation]:
+    """
+    Fetches all past conversations for the current user.
+
+    TODO: replace with a real database query filtered by current_user.user_id.
+    """
+    user_id = current_user.user_id  # noqa: F841
+    return []

@@ -9,5 +9,12 @@ class ConversationHistoryResponse(BaseModel):
     status: ConversationStatusEnum | None = None
     conversation: Conversation | None = None
 
+
+class PastConversationsResponse(BaseModel):
+    conversations: list[Conversation]
+    page: int
+    limit: int
+    total: int
+
 class ConversationStatusEnum(str, Enum):
     NO_CONVERSATION_STARTED = "NO_CONVERSATION_STARTED"
