@@ -9,15 +9,32 @@ class ParsedEquation:
 
 def parse_equation_input(raw: str) -> ParsedEquation:
     normalized = raw.strip()
-    if not normalized:
+    _validate_not_empty(normalized)
+
+    equations = _split_and_normalize_equations(normalized)
+    _validate_equations_exist(equations)
+    _validate_equation_format(equations)
+
+    return ParsedEquation(raw=normalized, equations=equations)
+
+
+def _validate_not_empty(text: str) -> None:
+    if not text:
         raise InvalidEquationError("A equação não pode ser vazia")
 
-    equations = [part.strip() for part in normalized.replace("\n", ",").split(",") if part.strip()]
+
+def _split_and_normalize_equations(text: str) -> list[str]:
+    text_with_commas = text.replace("\n", ",")
+    raw_parts = text_with_commas.split(",")
+    return [part.strip() for part in raw_parts if part.strip()]
+
+
+def _validate_equations_exist(equations: list[str]) -> None:
     if not equations:
         raise InvalidEquationError("Nenhuma equação encontrada no payload")
 
+
+def _validate_equation_format(equations: list[str]) -> None:
     for eq in equations:
         if "=" not in eq:
             raise InvalidEquationError(f"Formato de equação inválido: '{eq}'")
-
-    return ParsedEquation(raw=normalized, equations=equations)
