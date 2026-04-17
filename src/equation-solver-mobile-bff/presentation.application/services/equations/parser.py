@@ -36,5 +36,15 @@ def _validate_equations_exist(equations: list[str]) -> None:
 
 def _validate_equation_format(equations: list[str]) -> None:
     for eq in equations:
-        if "=" not in eq:
-            raise InvalidEquationError(f"Formato de equação inválido: '{eq}'")
+        if _is_valid_mathematical_expression(eq):
+            continue
+        raise InvalidEquationError(f"Formato inválido: '{eq}'")
+
+
+def _is_valid_mathematical_expression(expression: str) -> bool:
+    normalized = expression.strip()
+    
+    has_numbers = any(char.isdigit() for char in normalized)
+    has_operators_or_equals = any(op in normalized for op in "+-*/=")
+    
+    return has_numbers and has_operators_or_equals

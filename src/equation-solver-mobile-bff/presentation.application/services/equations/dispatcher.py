@@ -1,6 +1,7 @@
 from services.equations.equation_type_detector import EquationType
 from services.equations.errors import UnsupportedEquationTypeError
 from services.equations.parser import ParsedEquation
+from services.solvers.expression import ExpressionSolverStrategy
 from services.solvers.linear import LinearSolverStrategy
 from services.solvers.models import SolveResult
 from services.solvers.quadratic import QuadraticSolverStrategy
@@ -12,6 +13,7 @@ SOLVER_STRATEGIES = {
     EquationType.LINEAR: LinearSolverStrategy(),
     EquationType.QUADRATIC: QuadraticSolverStrategy(),
     EquationType.SYSTEM: SystemSolverStrategy(),
+    EquationType.EXPRESSION: ExpressionSolverStrategy(),
 }
 
 
@@ -34,5 +36,10 @@ def dispatch_solver(parsed: ParsedEquation, equation_type: EquationType, show_st
         raise UnsupportedEquationTypeError("Tipo de equação não suportada para resolução")
 
     strategy = SOLVER_STRATEGIES[equation_type]
-    equation_data = parsed.equations[0] if equation_type != EquationType.SYSTEM else parsed.equations
+    
+    if equation_type == EquationType.SYSTEM:
+        equation_data = parsed.equations
+    else:
+        equation_data = parsed.equations[0]
+    
     return strategy.solve(equation_data, show_steps=show_steps)
