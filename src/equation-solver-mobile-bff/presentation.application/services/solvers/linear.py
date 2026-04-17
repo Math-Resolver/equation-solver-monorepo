@@ -2,6 +2,14 @@ import re
 
 from services.equations.errors import InvalidEquationError
 from services.solvers.models import SolveResult, StepResult
+from services.solvers.strategy import EquationSolverStrategy
+
+
+class LinearSolverStrategy(EquationSolverStrategy):
+    """Strategy for solving linear equations."""
+
+    def solve(self, equation: str, show_steps: bool) -> SolveResult:
+        return solve_linear(equation, show_steps)
 
 
 def solve_linear(equation: str, show_steps: bool) -> SolveResult:
