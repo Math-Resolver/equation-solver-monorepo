@@ -2,6 +2,8 @@ from services.equations.equation_type_detector import EquationType
 from services.equations.errors import UnsupportedEquationTypeError
 from services.equations.parser import ParsedEquation
 from services.solvers.expression import ExpressionSolverStrategy
+from services.solvers.factorization import FactorizationSolverStrategy
+from services.solvers.fractions import FractionSolverStrategy
 from services.solvers.linear import LinearSolverStrategy
 from services.solvers.models import SolveResult
 from services.solvers.quadratic import QuadraticSolverStrategy
@@ -14,6 +16,8 @@ SOLVER_STRATEGIES = {
     EquationType.QUADRATIC: QuadraticSolverStrategy(),
     EquationType.SYSTEM: SystemSolverStrategy(),
     EquationType.EXPRESSION: ExpressionSolverStrategy(),
+    EquationType.FACTORIZATION: FactorizationSolverStrategy(),
+    EquationType.FRACTION: FractionSolverStrategy(),
 }
 
 

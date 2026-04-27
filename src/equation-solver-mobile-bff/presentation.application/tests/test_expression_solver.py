@@ -34,6 +34,44 @@ class SolveExpressionTests(unittest.TestCase):
         with self.assertRaises(InvalidEquationError):
             solve_expression("2+2;import os", show_steps=False)
 
+    def test_solves_power_expression(self) -> None:
+        result = solve_expression("2^3", show_steps=False)
+        self.assertEqual(result.result, "8")
+
+    def test_solves_power_expression_with_steps(self) -> None:
+        result = solve_expression("2^3+1", show_steps=True)
+        self.assertEqual(result.result, "9")
+        self.assertGreater(len(result.steps), 0)
+
+    def test_solves_power_with_asterisk_notation(self) -> None:
+        result = solve_expression("2**3", show_steps=False)
+        self.assertEqual(result.result, "8")
+
+    def test_solves_sqrt_expression(self) -> None:
+        result = solve_expression("sqrt(9)", show_steps=False)
+        self.assertEqual(result.result, "3")
+
+    def test_solves_sqrt_expression_with_raiz_notation(self) -> None:
+        result = solve_expression("raiz(16)", show_steps=False)
+        self.assertEqual(result.result, "4")
+
+    def test_solves_sqrt_with_steps(self) -> None:
+        result = solve_expression("sqrt(4)+2", show_steps=True)
+        self.assertEqual(result.result, "4")
+        self.assertGreater(len(result.steps), 0)
+
+    def test_solves_complex_expression_with_power_and_sqrt(self) -> None:
+        result = solve_expression("2^3+sqrt(4)", show_steps=False)
+        self.assertEqual(result.result, "10")
+
+    def test_solves_decimal_power(self) -> None:
+        result = solve_expression("4^0.5", show_steps=False)
+        self.assertEqual(result.result, "2")
+
+    def test_solves_decimal_expression(self) -> None:
+        result = solve_expression("1.5+2.5", show_steps=False)
+        self.assertEqual(result.result, "4")
+
 
 if __name__ == "__main__":
     unittest.main()

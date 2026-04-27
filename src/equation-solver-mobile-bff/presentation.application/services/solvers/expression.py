@@ -1,4 +1,5 @@
 import re
+import math
 
 from services.equations.errors import InvalidEquationError
 from services.solvers.models import SolveResult, StepResult
@@ -15,15 +16,24 @@ class ExpressionSolverStrategy(EquationSolverStrategy):
 def solve_expression(expression: str, show_steps: bool) -> SolveResult:
     normalized = expression.strip()
     _validate_expression_safety(normalized)
+    
+    normalized = _convert_notation(normalized)
 
-    result_value = eval(normalized)
+    result_value = eval(normalized, {"__builtins__": {}, "sqrt": math.sqrt})
     result_text = str(int(result_value) if isinstance(result_value, float) and result_value.is_integer() else result_value)
 
     if not show_steps:
         return SolveResult(result=result_text, steps=[])
 
-    steps = _generate_resolution_steps(normalized, result_text)
+    steps = _generate_resolution_steps(expression.strip(), result_text)
     return SolveResult(result=result_text, steps=steps)
+
+
+def _convert_notation(expression: str) -> str:
+    """Convert mathematical notation to Python notation."""
+    result = expression.replace("^", "**")
+    result = re.sub(r'raiz\s*\(', 'sqrt(', result, flags=re.IGNORECASE)
+    return result
 
 
 def _generate_resolution_steps(expression: str, final_result: str) -> list[StepResult]:
@@ -60,17 +70,19 @@ def _generate_resolution_steps(expression: str, final_result: str) -> list[StepR
 
 def _find_and_evaluate_next_operation(expression: str) -> tuple[str, str] | None:
     operations_order = [
-        (r"\d+(?:\.\d+)?\s*\*\s*\d+(?:\.\d+)?", "*"),
-        (r"\d+(?:\.\d+)?\s*/\s*\d+(?:\.\d+)?", "/"),
-        (r"\d+(?:\.\d+)?\s*\+\s*\d+(?:\.\d+)?", "+"),
-        (r"\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?", "-"),
+        (r"\d+(?:\.\d+)?\s*\*\*\s*\d+(?:\.\d+)?", "**"),
+        (r"sqrt\s*\(\s*\d+(?:\.\d+)?\s*\)", "sqrt"),
+        (r"\d+(?:\.\d+)?\s*\*\s*\d+(?:\.\d+)?", "*"),  
+        (r"\d+(?:\.\d+)?\s*/\s*\d+(?:\.\d+)?", "/"), 
+        (r"\d+(?:\.\d+)?\s*\+\s*\d+(?:\.\d+)?", "+"), 
+        (r"\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?", "-"),  
     ]
     
     for pattern, _ in operations_order:
         match = re.search(pattern, expression)
         if match:
             operation_expr = match.group(0)
-            operation_result = eval(operation_expr)
+            operation_result = eval(operation_expr, {"__builtins__": {}, "sqrt": math.sqrt})
             result_str = str(int(operation_result) if isinstance(operation_result, float) and operation_result.is_integer() else operation_result)
             new_expression = expression[:match.start()] + result_str + expression[match.end():]
             return operation_expr, new_expression
@@ -79,6 +91,7 @@ def _find_and_evaluate_next_operation(expression: str) -> tuple[str, str] | None
 
 
 def _validate_expression_safety(expression: str) -> None:
-    allowed_chars = set("0123456789+-*/(). ")
+    allowed_chars = set("0123456789+-*/(). ^")
+    allowed_chars.update("raizRAIZsqrtSQRT")
     if not all(c in allowed_chars for c in expression):
         raise InvalidEquationError(f"Expressão contém caracteres inválidos: '{expression}'")

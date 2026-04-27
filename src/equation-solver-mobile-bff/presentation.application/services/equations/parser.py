@@ -45,6 +45,8 @@ def _is_valid_mathematical_expression(expression: str) -> bool:
     normalized = expression.strip()
     
     has_numbers = any(char.isdigit() for char in normalized)
-    has_operators_or_equals = any(op in normalized for op in "+-*/=")
+    has_operators_or_equals = any(op in normalized for op in "+-*/=^")
     
-    return has_numbers and has_operators_or_equals
+    has_function = any(func in normalized.lower() for func in ["fator(", "factorize(", "raiz(", "sqrt("])
+    
+    return has_numbers and (has_operators_or_equals or has_function)
