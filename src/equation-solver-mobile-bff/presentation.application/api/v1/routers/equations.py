@@ -32,16 +32,22 @@ async def solve_equation(
     try:
         parsed = parse_equation_input(payload.equation)
         equation_type = detect_equation_type(parsed)
+
+        if equation_type == EquationType.UNKNOWN:
+            raise UnsupportedEquationTypeError("Tipo de equação não suportada para resolução")
+
+        result = dispatch_solver(parsed=parsed, equation_type=equation_type, show_steps=payload.showSteps)
     except InvalidEquationError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
+    except UnsupportedEquationTypeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
 
-    if equation_type == EquationType.UNKNOWN:
-        raise UnsupportedEquationTypeError("Could not identify equation type")
-
-    result = dispatch_solver(parsed=parsed, equation_type=equation_type, show_steps=payload.showSteps)
     if await request.is_disconnected():
         raise HTTPException(status_code=499, detail="Client disconnected")
 

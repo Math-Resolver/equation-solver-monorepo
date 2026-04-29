@@ -4,9 +4,11 @@ from services.equations.parser import ParsedEquation
 from services.solvers.expression import ExpressionSolverStrategy
 from services.solvers.factorization import FactorizationSolverStrategy
 from services.solvers.fractions import FractionSolverStrategy
+from services.solvers.inequality import InequalitySolverStrategy
 from services.solvers.linear import LinearSolverStrategy
 from services.solvers.models import SolveResult
 from services.solvers.quadratic import QuadraticSolverStrategy
+from services.solvers.simplification import SimplificationSolverStrategy
 from services.solvers.system import SystemSolverStrategy
 
 
@@ -18,6 +20,8 @@ SOLVER_STRATEGIES = {
     EquationType.EXPRESSION: ExpressionSolverStrategy(),
     EquationType.FACTORIZATION: FactorizationSolverStrategy(),
     EquationType.FRACTION: FractionSolverStrategy(),
+    EquationType.INEQUALITY: InequalitySolverStrategy(),
+    EquationType.SIMPLIFICATION: SimplificationSolverStrategy(),
 }
 
 

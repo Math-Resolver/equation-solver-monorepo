@@ -1,7 +1,13 @@
 from collections.abc import Callable
-from dataclasses import dataclass
 from enum import Enum
 import re
+
+from sympy import Poly
+from sympy.parsing.sympy_parser import (
+    implicit_multiplication_application,
+    parse_expr,
+    standard_transformations,
+)
 
 from services.equations.parser import ParsedEquation
 
@@ -13,21 +19,16 @@ class EquationType(str, Enum):
     EXPRESSION = "expression"
     FACTORIZATION = "factorization"
     FRACTION = "fraction"
+    INEQUALITY = "inequality"
+    SIMPLIFICATION = "simplification"
     UNKNOWN = "unknown"
 
-
-@dataclass(frozen=True)
-class DetectionRule:
-    equation_type: EquationType
-    predicate: Callable[[str], bool]
-
-
 def _is_quadratic(equation: str) -> bool:
-    return "x^2" in equation or "x**2" in equation
+    return _detect_polynomial_degree(equation) == 2
 
 
 def _is_linear(equation: str) -> bool:
-    return "x" in equation
+    return _detect_polynomial_degree(equation) == 1
 
 
 def _is_factorization(equation: str) -> bool:
@@ -54,12 +55,55 @@ def _is_fraction(equation: str) -> bool:
     return has_fraction_token and has_only_fraction_chars
 
 
+def _is_inequality(equation: str) -> bool:
+    """Check if the equation is an inequality."""
+    return any(op in equation for op in ["<", ">", "<=", ">="])
+
+
+def _is_simplification(equation: str) -> bool:
+    """Check if the equation is a simplification request."""
+    # No operators like =, <, >, but contains algebraic variables and operators like + or -.
+    # Keep function-like inputs such as raiz(...) and sqrt(...) out of this bucket.
+    lowered = equation.lower()
+    has_variable = bool(re.search(r"(?<![a-zA-Z])[xyz](?![a-zA-Z])", lowered))
+    has_operators = any(op in equation for op in "+-*")
+    no_equation_markers = "=" not in equation and not any(op in equation for op in ["<", ">"])
+    no_functions = not any(func in lowered for func in ["raiz(", "sqrt(", "fator(", "factorize("])
+    
+    return has_variable and has_operators and no_equation_markers and no_functions
+
+
 def _is_simple_expression(equation: str) -> bool:
     has_numbers = any(char.isdigit() for char in equation)
     has_operators = any(op in equation for op in "+-*/" "^")
     has_functions = any(func in equation.lower() for func in ["sqrt(", "raiz("])
     
     return has_numbers and (has_operators or has_functions)
+
+
+def _detect_polynomial_degree(equation: str) -> int | None:
+    try:
+        expression = _build_sympy_expression(equation)
+        if not expression.free_symbols:
+            return None
+
+        polynomial = Poly(expression, *sorted(expression.free_symbols, key=lambda symbol: symbol.name))
+        return polynomial.total_degree()
+    except Exception:
+        return None
+
+
+def _build_sympy_expression(equation: str):
+    normalized = equation.replace("^", "**")
+    transformations = standard_transformations + (
+        implicit_multiplication_application,
+    )
+
+    if "=" in normalized:
+        left, right = normalized.split("=", 1)
+        return parse_expr(left, transformations=transformations) - parse_expr(right, transformations=transformations)
+
+    return parse_expr(normalized, transformations=transformations)
 
 
 def detect_equation_type(parsed: ParsedEquation) -> EquationType:
@@ -69,16 +113,19 @@ def detect_equation_type(parsed: ParsedEquation) -> EquationType:
     equation = parsed.equations[0].replace(" ", "")
 
     for rule in DETECTION_RULES:
-        if rule.predicate(equation):
-            return rule.equation_type
+        equation_type, predicate = rule
+        if predicate(equation):
+            return equation_type
 
     return EquationType.UNKNOWN
 
 
-DETECTION_RULES: tuple[DetectionRule, ...] = (
-    DetectionRule(equation_type=EquationType.FACTORIZATION, predicate=_is_factorization),
-    DetectionRule(equation_type=EquationType.QUADRATIC, predicate=_is_quadratic),
-    DetectionRule(equation_type=EquationType.LINEAR, predicate=_is_linear),
-    DetectionRule(equation_type=EquationType.FRACTION, predicate=_is_fraction),
-    DetectionRule(equation_type=EquationType.EXPRESSION, predicate=_is_simple_expression),
+DETECTION_RULES: tuple[tuple[EquationType, Callable[[str], bool]], ...] = (
+    (EquationType.FACTORIZATION, _is_factorization),
+    (EquationType.INEQUALITY, _is_inequality),
+    (EquationType.FRACTION, _is_fraction),
+    (EquationType.QUADRATIC, _is_quadratic),
+    (EquationType.SIMPLIFICATION, _is_simplification),
+    (EquationType.LINEAR, _is_linear),
+    (EquationType.EXPRESSION, _is_simple_expression),
 )
