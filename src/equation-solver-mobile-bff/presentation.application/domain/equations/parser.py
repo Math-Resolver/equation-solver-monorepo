@@ -1,4 +1,4 @@
-from services.equations.errors import InvalidEquationError
+from domain.equations.errors import InvalidEquationError
 
 
 class ParsedEquation:

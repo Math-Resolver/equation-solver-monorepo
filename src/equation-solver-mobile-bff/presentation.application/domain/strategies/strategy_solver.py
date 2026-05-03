@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from services.solvers.models import SolveResult
+from domain.strategies.models_solver import SolveResult
 
 
 class EquationSolverStrategy(ABC):

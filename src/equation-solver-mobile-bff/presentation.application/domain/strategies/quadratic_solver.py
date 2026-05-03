@@ -1,8 +1,8 @@
 import cmath
 
-from services.equations.errors import InvalidEquationError
-from services.solvers.models import SolveResult, StepResult
-from services.solvers.strategy import EquationSolverStrategy
+from domain.equations.errors import InvalidEquationError
+from domain.strategies.models_solver import SolveResult, StepResult
+from domain.strategies.strategy_solver import EquationSolverStrategy
 
 
 class QuadraticSolverStrategy(EquationSolverStrategy):

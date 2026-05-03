@@ -7,8 +7,8 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from services.equations.equation_type_detector import EquationType, detect_equation_type
-from services.equations.parser import ParsedEquation
+from domain.equations.equation_type_detector import EquationType, detect_equation_type
+from domain.equations.parser import ParsedEquation
 
 
 class DetectEquationTypeTests(unittest.TestCase):

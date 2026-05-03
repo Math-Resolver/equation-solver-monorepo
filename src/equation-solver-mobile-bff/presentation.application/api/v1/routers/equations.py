@@ -1,11 +1,11 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
 from api.v1.schemas.equation import SolveEquationRequest, SolveEquationResponse, Step
-from services.equations.dispatcher import dispatch_solver
-from services.equations.equation_type_detector import EquationType, detect_equation_type
-from services.equations.errors import InvalidEquationError, UnsupportedEquationTypeError
-from services.equations.parser import parse_equation_input
-from services.history.persistence import schedule_history_persistence
+from domain.equations.dispatcher import dispatch_solver
+from domain.equations.equation_type_detector import EquationType, detect_equation_type
+from domain.equations.errors import InvalidEquationError, UnsupportedEquationTypeError
+from domain.equations.parser import parse_equation_input
+from domain.equations.history.persistence import schedule_history_persistence
 
 router = APIRouter(prefix="/v1/equation", tags=["equation"])
 

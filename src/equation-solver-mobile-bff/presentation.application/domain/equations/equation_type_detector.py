@@ -9,7 +9,7 @@ from sympy.parsing.sympy_parser import (
     standard_transformations,
 )
 
-from services.equations.parser import ParsedEquation
+from domain.equations.parser import ParsedEquation
 
 
 class EquationType(str, Enum):
@@ -21,6 +21,7 @@ class EquationType(str, Enum):
     FRACTION = "fraction"
     INEQUALITY = "inequality"
     SIMPLIFICATION = "simplification"
+    FUNCTION_ANALYSIS = "function_analysis"
     UNKNOWN = "unknown"
 
 def _is_quadratic(equation: str) -> bool:
@@ -73,6 +74,30 @@ def _is_simplification(equation: str) -> bool:
     return has_variable and has_operators and no_equation_markers and no_functions
 
 
+def _is_function_analysis(equation: str) -> bool:
+    """Check if the equation requests function analysis."""
+    lowered = equation.lower()
+    return any(
+        keyword in lowered
+        for keyword in [
+            "domain:",
+            "dominio:",
+            "domínio:",
+            "extrema:",
+            "maximum:",
+            "minimum:",
+            "intersect:",
+            "interseccao:",
+            "interseção:",
+            "intersecao:",
+            "interseção",
+            "dominio",
+            "domínio",
+            "extremos",
+        ]
+    )
+
+
 def _is_simple_expression(equation: str) -> bool:
     has_numbers = any(char.isdigit() for char in equation)
     has_operators = any(op in equation for op in "+-*/" "^")
@@ -122,6 +147,7 @@ def detect_equation_type(parsed: ParsedEquation) -> EquationType:
 
 DETECTION_RULES: tuple[tuple[EquationType, Callable[[str], bool]], ...] = (
     (EquationType.FACTORIZATION, _is_factorization),
+    (EquationType.FUNCTION_ANALYSIS, _is_function_analysis),
     (EquationType.INEQUALITY, _is_inequality),
     (EquationType.FRACTION, _is_fraction),
     (EquationType.QUADRATIC, _is_quadratic),

@@ -1,15 +1,16 @@
-from services.equations.equation_type_detector import EquationType
-from services.equations.errors import UnsupportedEquationTypeError
-from services.equations.parser import ParsedEquation
-from services.solvers.expression import ExpressionSolverStrategy
-from services.solvers.factorization import FactorizationSolverStrategy
-from services.solvers.fractions import FractionSolverStrategy
-from services.solvers.inequality import InequalitySolverStrategy
-from services.solvers.linear import LinearSolverStrategy
-from services.solvers.models import SolveResult
-from services.solvers.quadratic import QuadraticSolverStrategy
-from services.solvers.simplification import SimplificationSolverStrategy
-from services.solvers.system import SystemSolverStrategy
+from domain.equations.equation_type_detector import EquationType
+from domain.equations.errors import UnsupportedEquationTypeError
+from domain.equations.parser import ParsedEquation
+from domain.strategies.expression_solver import ExpressionSolverStrategy
+from domain.strategies.factorization_solver import FactorizationSolverStrategy
+from domain.strategies.fractions_solver import FractionSolverStrategy
+from domain.strategies.function_analysis_solver import FunctionAnalysisSolverStrategy
+from domain.strategies.inequality_solver import InequalitySolverStrategy
+from domain.strategies.linear_solver import LinearSolverStrategy
+from domain.strategies.models_solver import SolveResult
+from domain.strategies.quadratic_solver import QuadraticSolverStrategy
+from domain.strategies.simplification_solver import SimplificationSolverStrategy
+from domain.strategies.system_solver import SystemSolverStrategy
 
 
 # Strategy registry mapping equation types to their solvers
@@ -19,6 +20,7 @@ SOLVER_STRATEGIES = {
     EquationType.SYSTEM: SystemSolverStrategy(),
     EquationType.EXPRESSION: ExpressionSolverStrategy(),
     EquationType.FACTORIZATION: FactorizationSolverStrategy(),
+    EquationType.FUNCTION_ANALYSIS: FunctionAnalysisSolverStrategy(),
     EquationType.FRACTION: FractionSolverStrategy(),
     EquationType.INEQUALITY: InequalitySolverStrategy(),
     EquationType.SIMPLIFICATION: SimplificationSolverStrategy(),

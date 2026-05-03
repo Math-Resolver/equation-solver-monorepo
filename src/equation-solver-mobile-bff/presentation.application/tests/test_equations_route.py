@@ -104,6 +104,18 @@ class SolveEquationRouteTests(unittest.TestCase):
         self.assertEqual(body["result"], "5x+5")
         self.assertEqual(body["steps"], [])
 
+    def test_solves_function_analysis_domain(self) -> None:
+        response = self.client.post(
+            "/v1/equation/solve",
+            json={"equation": "domain: 1/(x-2)", "showSteps": False},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        body = response.json()
+        self.assertIn("Domínio:", body["result"])
+        self.assertEqual(body["steps"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
