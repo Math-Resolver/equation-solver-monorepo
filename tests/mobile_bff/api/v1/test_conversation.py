@@ -3,10 +3,29 @@ import json
 from fastapi import HTTPException
 
 from main import app
-from api.v1.routers.conversation import get_cache_service
-from api.v1.routers.conversation import get_ai_adapter
+from api.v1.dependencies.service_injection import get_ai_adapter
+from api.v1.dependencies.service_injection import get_cache_service
+from domain.conversation.constants.topics import Topics
 from domain.conversation.models.explanation_model import ExplanationModel
-from infrastructure.adapters.cache import CacheUnavailableError
+
+
+class CacheUnavailableError(Exception):
+    pass
+
+
+class TestAvailableTopics:
+    def test_should_return_401_when_user_is_not_authenticated(self, client):
+        response = client.get("/v1/topics/available")
+
+        assert response.status_code == 401
+
+    def test_should_return_available_topics_when_user_is_authenticated(
+        self, client, mock_authenticated_user
+    ):
+        response = client.get("/v1/topics/available")
+
+        assert response.status_code == 200
+        assert response.json() == {"topics": Topics.list()}
 
 
 class TestCreateConversation:
@@ -141,7 +160,7 @@ class FakeAiAdapter:
         self.error = error
         self.requested_topics = []
 
-    def generate_explanation(self, topic):
+    def retrieve_explanation(self, topic):
         self.requested_topics.append(topic)
 
         if self.error is not None:

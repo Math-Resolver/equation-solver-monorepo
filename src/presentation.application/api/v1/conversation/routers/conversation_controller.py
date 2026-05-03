@@ -11,6 +11,8 @@ from api.v1.dependencies.service_injection import AiAdapter
 from api.v1.dependencies.service_injection import RedisCacheService
 from api.v1.dependencies.service_injection import get_ai_adapter
 from api.v1.dependencies.service_injection import get_cache_service
+from domain.conversation.constants.topics import Topics
+from api.v1.conversation.schemas.topics_available_response import TopicsAvailableResponse
 from api.v1.conversation.schemas.conversation_request import ConversationRequest
 from api.v1.conversation.schemas.conversation_response import ConversationResponse
 
@@ -20,6 +22,22 @@ CACHE_NAMESPACE = "conversation:topic"
 
 router = APIRouter(prefix="/v1", tags=["conversation"])
 
+@router.get(
+        "/topics/available",
+        response_model=TopicsAvailableResponse,
+        responses={
+            200: {
+                "description": "returned topics successfully"
+            },
+                        401: {
+                "description": "Unauthorized"
+            }
+        }
+)
+def available_topics(current_user: AuthenticatedUser = Depends(get_current_user)):
+    _ = current_user
+    topics = Topics.list()
+    return TopicsAvailableResponse(topics=topics)
 
 @router.post(
         "/conversation", 

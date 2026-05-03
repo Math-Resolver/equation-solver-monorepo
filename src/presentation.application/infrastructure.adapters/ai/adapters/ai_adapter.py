@@ -56,7 +56,7 @@ class AiAdapter(AiAdapterAbstraction):
             parsed_text = gemini_response.first_payload()
         except Exception as exc:
             logger.error("Failed to deserialize Gemini response. response_body=%s", response_body, exc_info=exc)
-            raise Exception
+            return ExplanationModel(is_operation_successful=False, message="Failed to deserialize response")
         message = parsed_text.message
         example = parsed_text.example
         return ExplanationModel(is_operation_successful=True, message=message.strip(), example=example)
