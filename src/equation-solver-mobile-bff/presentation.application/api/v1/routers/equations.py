@@ -1,6 +1,7 @@
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
-from api.v1.schemas.equation import SolveEquationRequest, SolveEquationResponse, Step
+from api.v1.schemas.solve_equation_request import SolveEquationRequest
+from api.v1.schemas.solve_equation_response import SolveEquationResponse, Step
 from domain.equations.dispatcher import dispatch_solver
 from domain.equations.equation_type_detector import EquationType, detect_equation_type
 from domain.equations.errors import InvalidEquationError, UnsupportedEquationTypeError
