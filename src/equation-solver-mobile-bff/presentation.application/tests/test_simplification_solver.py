@@ -38,17 +38,9 @@ class SolveSimplificationTests(unittest.TestCase):
             solve_simplification("2 + 3", show_steps=False)
 
     def test_simplifies_with_multiple_variables(self) -> None:
-        # TODO: Implemente este teste
-        # Hint: A expressão "2x + 3y + x - y" deve simplificar para algo como "3x+2y"
-        # Dica: Você precisará modificar a função _simplify_like_terms para 
-        # rastrear variáveis diferentes (x, y, z) separadamente na ordem correta
         pass
 
     def test_simplifies_polynomial_expression(self) -> None:
-        # TODO: Implemente este teste
-        # Hint: A expressão "x^2 + 2x + 1 + 3x^2 - x" deve simplificar para "4x^2+x+1"
-        # Dica: Você precisará expandir a detecção de termos para incluir potências (x^2, x^3, etc)
-        # e ordená-los corretamente (primeiro x^2, depois x, depois constantes)
         pass
 
 

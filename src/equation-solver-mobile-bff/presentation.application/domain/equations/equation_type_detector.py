@@ -63,8 +63,6 @@ def _is_inequality(equation: str) -> bool:
 
 def _is_simplification(equation: str) -> bool:
     """Check if the equation is a simplification request."""
-    # No operators like =, <, >, but contains algebraic variables and operators like + or -.
-    # Keep function-like inputs such as raiz(...) and sqrt(...) out of this bucket.
     lowered = equation.lower()
     has_variable = bool(re.search(r"(?<![a-zA-Z])[xyz](?![a-zA-Z])", lowered))
     has_operators = any(op in equation for op in "+-*")

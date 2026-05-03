@@ -13,7 +13,6 @@ from domain.strategies.simplification_solver import SimplificationSolverStrategy
 from domain.strategies.system_solver import SystemSolverStrategy
 
 
-# Strategy registry mapping equation types to their solvers
 SOLVER_STRATEGIES = {
     EquationType.LINEAR: LinearSolverStrategy(),
     EquationType.QUADRATIC: QuadraticSolverStrategy(),

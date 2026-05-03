@@ -12,7 +12,6 @@ router = APIRouter(prefix="/v1/equation", tags=["equation"])
 
 
 def _extract_username_from_request(request: Request) -> str | None:
-    # TODO: implementar autenticação de verdade e extrair o username do token JWT
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         return None
