@@ -7,7 +7,7 @@ from domain.strategies.fractions_solver import FractionSolverStrategy
 from domain.strategies.function_analysis_solver import FunctionAnalysisSolverStrategy
 from domain.strategies.inequality_solver import InequalitySolverStrategy
 from domain.strategies.linear_solver import LinearSolverStrategy
-from domain.strategies.models_solver import SolveResult
+from domain.strategies.models import SolveResult
 from domain.strategies.quadratic_solver import QuadraticSolverStrategy
 from domain.strategies.simplification_solver import SimplificationSolverStrategy
 from domain.strategies.system_solver import SystemSolverStrategy

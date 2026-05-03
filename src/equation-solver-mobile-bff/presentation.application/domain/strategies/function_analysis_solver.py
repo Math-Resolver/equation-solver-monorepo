@@ -10,7 +10,7 @@ from sympy.parsing.sympy_parser import (
 )
 
 from domain.equations.errors import InvalidEquationError
-from domain.strategies.models_solver import SolveResult, StepResult
+from domain.strategies.models import SolveResult, StepResult
 from domain.strategies.strategy_solver import EquationSolverStrategy
 
 
