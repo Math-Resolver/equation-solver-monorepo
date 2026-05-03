@@ -1,52 +1,28 @@
 import logging
 import json
 import os
-from importlib.util import module_from_spec
-from importlib.util import spec_from_file_location
 from pathlib import Path
-import sys
 from urllib import request
+from urllib.error import HTTPError
+from domain.module_loader import load_module_from_path
 from domain.abstractions.ai_adapter_abstraction import AiAdapterAbstraction
 from domain.conversation.models.explanation_model import ExplanationModel
 
 
-_MODEL_MODULE_PATH = Path(__file__).resolve().parents[1] / "models" / "gemini_response_model.py"
-_MODEL_MODULE_SPEC = spec_from_file_location(
+_MODEL_MODULE = load_module_from_path(
     "infrastructure.adapters.ai.models.gemini_response_model",
-    _MODEL_MODULE_PATH,
+    Path(__file__).resolve().parents[1] / "models" / "gemini_response_model.py",
 )
-_MODEL_MODULE = module_from_spec(_MODEL_MODULE_SPEC)
-assert _MODEL_MODULE_SPEC is not None
-assert _MODEL_MODULE_SPEC.loader is not None
-sys.modules[_MODEL_MODULE_SPEC.name] = _MODEL_MODULE
-_MODEL_MODULE_SPEC.loader.exec_module(_MODEL_MODULE)
 
 GeminiResponseModel = _MODEL_MODULE.GeminiResponseModel
 
 
-_REQUEST_MODEL_MODULE_PATH = Path(__file__).resolve().parents[1] / "models" / "gemini_request_model.py"
-_REQUEST_MODEL_MODULE_SPEC = spec_from_file_location(
+_REQUEST_MODEL_MODULE = load_module_from_path(
     "infrastructure.adapters.ai.models.gemini_request_model",
-    _REQUEST_MODEL_MODULE_PATH,
+    Path(__file__).resolve().parents[1] / "models" / "gemini_request_model.py",
 )
-_REQUEST_MODEL_MODULE = module_from_spec(_REQUEST_MODEL_MODULE_SPEC)
-assert _REQUEST_MODEL_MODULE_SPEC is not None
-assert _REQUEST_MODEL_MODULE_SPEC.loader is not None
-sys.modules[_REQUEST_MODEL_MODULE_SPEC.name] = _REQUEST_MODEL_MODULE
-_REQUEST_MODEL_MODULE_SPEC.loader.exec_module(_REQUEST_MODEL_MODULE)
 
 GeminiRequestModel = _REQUEST_MODEL_MODULE.GeminiRequestModel
-
-
-_MODULE_PATH = Path(__file__).resolve().with_name("llm_client.py")
-_MODULE_SPEC = spec_from_file_location("infrastructure.adapters.LlmAdapter._llm_client", _MODULE_PATH)
-_MODULE = module_from_spec(_MODULE_SPEC)
-assert _MODULE_SPEC is not None
-assert _MODULE_SPEC.loader is not None
-sys.modules[_MODULE_SPEC.name] = _MODULE
-_MODULE_SPEC.loader.exec_module(_MODULE)
-
-AiAdapter = _MODULE.AiAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +44,13 @@ class AiAdapter(AiAdapterAbstraction):
             f"{self._model}:generateContent?key={self._api_key}"
         )
         http_request = _build_http_request(endpoint, gemini_request)
-        with request.urlopen(http_request, timeout=self._timeout_seconds) as response:
-            response_body = response.read().decode("utf-8")
+        try:
+            with request.urlopen(http_request, timeout=self._timeout_seconds) as response:
+                response_body = response.read().decode("utf-8")
+        except HTTPError as exc:
+            if exc.code == 429:
+                logger.warning("Gemini rate limit exceeded (HTTP 429).")
+                return ExplanationModel(is_operation_successful=False, message="Ai model is unavailable for now")
         try:
             gemini_response = GeminiResponseModel.from_json(response_body)
             parsed_text = gemini_response.first_payload()
@@ -78,7 +59,7 @@ class AiAdapter(AiAdapterAbstraction):
             raise Exception
         message = parsed_text.message
         example = parsed_text.example
-        return ExplanationModel(message=message.strip(), example=example)
+        return ExplanationModel(is_operation_successful=True, message=message.strip(), example=example)
     
 
 def get_ai_adapter() -> AiAdapter:

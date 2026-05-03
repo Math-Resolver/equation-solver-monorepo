@@ -2,7 +2,7 @@ import logging
 import os
 from hashlib import sha256
 from typing import Any
-from domain.abstractions import CacheServiceAbstraction
+from domain.abstractions.cache_service_abstractions import CacheServiceAbstraction
 from redis import Redis
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class RedisCacheService(CacheServiceAbstraction):
             return
 
 
-def get_cache_service() -> CacheService:
+def get_cache_service() -> RedisCacheService:
     redis_url = os.getenv("REDIS_URL")
     ttl_seconds = int(
         os.getenv("CACHE_DEFAULT_TTL_SECONDS",os.getenv("CONVERSATION_CACHE_TTL_SECONDS", str(DEFAULT_CACHE_TTL_SECONDS)))

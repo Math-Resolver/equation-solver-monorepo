@@ -6,7 +6,7 @@ from domain.conversation.models.explanation_model import ExplanationModel
 
 class AiAdapterAbstraction(ABC):
     @abstractmethod
-    def generate_explanation(self, topic: str) -> ExplanationModel:
+    def retrieve_explanation(self, topic: str) -> ExplanationModel:
         raise NotImplementedError()
 
 

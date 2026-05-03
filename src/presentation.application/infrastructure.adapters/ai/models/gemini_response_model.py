@@ -9,7 +9,6 @@ class GeminiResponseModel:
     @classmethod
     def from_json(cls, response_body: str) -> "GeminiResponseModel":
         payload = json.loads(response_body)
-
         return cls(
             candidates=[
                 GeminiResponseCandidateModel(
