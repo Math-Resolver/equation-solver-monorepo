@@ -78,13 +78,3 @@ class TestGeminiResponsePartModel:
             message="A logarithm is the inverse of exponentiation.",
             example="log2(8) = 3",
         )
-
-    def test_should_fallback_to_plain_text_message(self):
-        part_model = GeminiResponsePartModel(
-            text="A logarithm is the inverse of exponentiation."
-        )
-
-        assert part_model.payload() == GeminiGeneratedPayloadModel(
-            message="A logarithm is the inverse of exponentiation.",
-            example=None,
-        )

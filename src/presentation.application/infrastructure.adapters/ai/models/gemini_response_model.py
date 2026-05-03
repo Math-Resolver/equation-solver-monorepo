@@ -38,6 +38,8 @@ class GeminiGeneratedPayloadModel:
     @classmethod
     def from_text(cls, text: str) -> "GeminiGeneratedPayloadModel":
         payload = json.loads(text)
+        if not isinstance(payload, dict):
+            raise TypeError(f"Expected a JSON object, got {type(payload).__name__}")
         return cls(message=payload.get("message"), example=payload.get("example"))
 
 
