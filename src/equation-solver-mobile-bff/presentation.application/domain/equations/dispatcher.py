@@ -1,5 +1,5 @@
 from domain.equations.equation_type_detector import EquationType
-from domain.equations.errors import UnsupportedEquationTypeError
+from domain.equations.errors import InvalidEquationError
 from domain.equations.parser import ParsedEquation
 from domain.strategies.expression_solver import ExpressionSolverStrategy
 from domain.strategies.factorization_solver import FactorizationSolverStrategy
@@ -7,7 +7,7 @@ from domain.strategies.fractions_solver import FractionSolverStrategy
 from domain.strategies.function_analysis_solver import FunctionAnalysisSolverStrategy
 from domain.strategies.inequality_solver import InequalitySolverStrategy
 from domain.strategies.linear_solver import LinearSolverStrategy
-from domain.strategies.models import SolveResult
+from domain.strategies.models.models_solver import SolveResult
 from domain.strategies.quadratic_solver import QuadraticSolverStrategy
 from domain.strategies.simplification_solver import SimplificationSolverStrategy
 from domain.strategies.system_solver import SystemSolverStrategy
@@ -26,6 +26,10 @@ SOLVER_STRATEGIES = {
 }
 
 
+def is_supported_equation_type(equation_type: object) -> bool:
+    return equation_type in SOLVER_STRATEGIES
+
+
 def dispatch_solver(parsed: ParsedEquation, equation_type: EquationType, show_steps: bool) -> SolveResult:
     """
     Dispatch to appropriate solver strategy based on equation type.
@@ -38,12 +42,7 @@ def dispatch_solver(parsed: ParsedEquation, equation_type: EquationType, show_st
     Returns:
         SolveResult: The solution result
 
-    Raises:
-        UnsupportedEquationTypeError: If equation type has no registered strategy
     """
-    if equation_type not in SOLVER_STRATEGIES:
-        raise UnsupportedEquationTypeError("Tipo de equação não suportada para resolução")
-
     strategy = SOLVER_STRATEGIES[equation_type]
     
     if equation_type == EquationType.SYSTEM:
@@ -52,3 +51,15 @@ def dispatch_solver(parsed: ParsedEquation, equation_type: EquationType, show_st
         equation_data = parsed.equations[0]
     
     return strategy.solve(equation_data, show_steps=show_steps)
+
+
+def dispatch_solver_safe(
+    parsed: ParsedEquation,
+    equation_type: EquationType,
+    show_steps: bool,
+) -> tuple[SolveResult | None, str | None]:
+    try:
+        result = dispatch_solver(parsed=parsed, equation_type=equation_type, show_steps=show_steps)
+        return result, None
+    except InvalidEquationError as exc:
+        return None, str(exc)

@@ -2,10 +2,9 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
 from api.v1.schemas.solve_equation_request import SolveEquationRequest
 from api.v1.schemas.solve_equation_response import SolveEquationResponse, Step
-from domain.equations.dispatcher import dispatch_solver
+from domain.equations.dispatcher import dispatch_solver_safe, is_supported_equation_type
 from domain.equations.equation_type_detector import EquationType, detect_equation_type
-from domain.equations.errors import InvalidEquationError, UnsupportedEquationTypeError
-from domain.equations.parser import parse_equation_input
+from domain.equations.parser import parse_equation_input_safe
 from domain.equations.history.persistence import schedule_history_persistence
 
 router = APIRouter(prefix="/v1/equation", tags=["equation"])
@@ -29,24 +28,26 @@ async def solve_equation(
     request: Request,
     background_tasks: BackgroundTasks,
 ) -> SolveEquationResponse:
-    try:
-        parsed = parse_equation_input(payload.equation)
-        equation_type = detect_equation_type(parsed)
-
-        if equation_type == EquationType.UNKNOWN:
-            raise UnsupportedEquationTypeError("Tipo de equação não suportada para resolução")
-
-        result = dispatch_solver(parsed=parsed, equation_type=equation_type, show_steps=payload.showSteps)
-    except InvalidEquationError as exc:
+    parsed, parse_error = parse_equation_input_safe(payload.equation)
+    if parse_error is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(exc),
-        ) from exc
-    except UnsupportedEquationTypeError as exc:
+            detail=parse_error,
+        )
+
+    equation_type = detect_equation_type(parsed)
+    if equation_type == EquationType.UNKNOWN or not is_supported_equation_type(equation_type):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=str(exc),
-        ) from exc
+            detail="Tipo de equação não suportada para resolução",
+        )
+
+    result, solve_error = dispatch_solver_safe(parsed=parsed, equation_type=equation_type, show_steps=payload.showSteps)
+    if solve_error is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=solve_error,
+        )
 
     if await request.is_disconnected():
         raise HTTPException(status_code=499, detail="Client disconnected")

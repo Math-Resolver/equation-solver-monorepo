@@ -18,6 +18,14 @@ def parse_equation_input(raw: str) -> ParsedEquation:
     return ParsedEquation(raw=normalized, equations=equations)
 
 
+def parse_equation_input_safe(raw: str) -> tuple[ParsedEquation | None, str | None]:
+    """Parse equation input without propagating domain exceptions."""
+    try:
+        return parse_equation_input(raw), None
+    except InvalidEquationError as exc:
+        return None, str(exc)
+
+
 def _validate_not_empty(text: str) -> None:
     if not text:
         raise InvalidEquationError("A equação não pode ser vazia")
