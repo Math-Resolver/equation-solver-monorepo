@@ -8,7 +8,7 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from domain.equations.errors import InvalidEquationError
-from domain.strategies.factorization_solver import solve_factorization
+from domain.equations.strategies.factorization_solver import solve_factorization
 
 
 class SolveFactorizationTests(unittest.TestCase):

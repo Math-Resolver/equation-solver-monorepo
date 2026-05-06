@@ -8,7 +8,7 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from domain.equations.errors import InvalidEquationError
-from domain.strategies.simplification_solver import solve_simplification
+from domain.equations.strategies.simplification_solver import solve_simplification
 
 
 class SolveSimplificationTests(unittest.TestCase):

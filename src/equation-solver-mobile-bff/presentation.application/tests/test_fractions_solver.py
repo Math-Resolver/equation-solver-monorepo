@@ -8,7 +8,7 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from domain.equations.errors import InvalidEquationError
-from domain.strategies.fractions_solver import solve_fraction
+from domain.equations.strategies.fractions_solver import solve_fraction
 
 
 class SolveFractionTests(unittest.TestCase):

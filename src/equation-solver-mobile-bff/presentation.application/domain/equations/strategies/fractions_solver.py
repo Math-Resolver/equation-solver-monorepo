@@ -2,8 +2,8 @@ import re
 from fractions import Fraction
 
 from domain.equations.errors import InvalidEquationError
-from domain.strategies.models.models_solver import SolveResult, StepResult
-from domain.strategies.strategy_solver import EquationSolverStrategy
+from domain.equations.strategies.models.models_solver import SolveResult, StepResult
+from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
 
 class FractionSolverStrategy(EquationSolverStrategy):

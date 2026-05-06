@@ -1,16 +1,16 @@
 from domain.equations.equation_type_detector import EquationType
 from domain.equations.errors import InvalidEquationError
 from domain.equations.parser import ParsedEquation
-from domain.strategies.expression_solver import ExpressionSolverStrategy
-from domain.strategies.factorization_solver import FactorizationSolverStrategy
-from domain.strategies.fractions_solver import FractionSolverStrategy
-from domain.strategies.function_analysis_solver import FunctionAnalysisSolverStrategy
-from domain.strategies.inequality_solver import InequalitySolverStrategy
-from domain.strategies.linear_solver import LinearSolverStrategy
-from domain.strategies.models.models_solver import SolveResult
-from domain.strategies.quadratic_solver import QuadraticSolverStrategy
-from domain.strategies.simplification_solver import SimplificationSolverStrategy
-from domain.strategies.system_solver import SystemSolverStrategy
+from domain.equations.strategies.expression_solver import ExpressionSolverStrategy
+from domain.equations.strategies.factorization_solver import FactorizationSolverStrategy
+from domain.equations.strategies.fractions_solver import FractionSolverStrategy
+from domain.equations.strategies.function_analysis_solver import FunctionAnalysisSolverStrategy
+from domain.equations.strategies.inequality_solver import InequalitySolverStrategy
+from domain.equations.strategies.linear_solver import LinearSolverStrategy
+from domain.equations.strategies.models.models_solver import SolveResult
+from domain.equations.strategies.quadratic_solver import QuadraticSolverStrategy
+from domain.equations.strategies.simplification_solver import SimplificationSolverStrategy
+from domain.equations.strategies.system_solver import SystemSolverStrategy
 
 
 SOLVER_STRATEGIES = {

@@ -8,7 +8,7 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from domain.equations.errors import InvalidEquationError
-from domain.strategies.inequality_solver import solve_inequality
+from domain.equations.strategies.inequality_solver import solve_inequality
 
 
 class SolveInequalityTests(unittest.TestCase):
