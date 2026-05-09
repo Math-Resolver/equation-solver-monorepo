@@ -7,7 +7,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.fractions_solver import solve_fraction
 
 
@@ -50,8 +49,8 @@ class SolveFractionTests(unittest.TestCase):
         self.assertEqual(result.result, "5/2")
 
     def test_rejects_invalid_fraction_format(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_fraction("1//2", show_steps=False)
+        result = solve_fraction("1//2", show_steps=False)
+        self.assertIsNotNone(result.error)
 
 
 if __name__ == "__main__":

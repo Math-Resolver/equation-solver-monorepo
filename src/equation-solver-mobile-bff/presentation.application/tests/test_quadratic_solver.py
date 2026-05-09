@@ -7,7 +7,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.quadratic_solver import solve_quadratic
 
 
@@ -24,8 +23,8 @@ class SolveQuadraticTests(unittest.TestCase):
         self.assertEqual(len(result.steps), 3)
 
     def test_rejects_equation_without_equals_sign(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_quadratic("x^2-5x+6", show_steps=False)
+        result = solve_quadratic("x^2-5x+6", show_steps=False)
+        self.assertIsNotNone(result.error)
 
 
 if __name__ == "__main__":

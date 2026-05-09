@@ -7,7 +7,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.inequality_solver import solve_inequality
 
 
@@ -34,12 +33,12 @@ class SolveInequalityTests(unittest.TestCase):
         self.assertEqual(len(result.steps), 2)
 
     def test_rejects_inequality_without_operator(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_inequality("2x + 5 = 15", show_steps=False)
+        result = solve_inequality("2x + 5 = 15", show_steps=False)
+        self.assertIsNotNone(result.error)
 
     def test_rejects_inequality_with_zero_coefficient(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_inequality("0*x + 5 > 10", show_steps=False)
+        result = solve_inequality("0*x + 5 > 10", show_steps=False)
+        self.assertIsNotNone(result.error)
 
 
 if __name__ == "__main__":

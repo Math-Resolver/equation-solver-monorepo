@@ -7,7 +7,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.factorization_solver import solve_factorization
 
 
@@ -47,16 +46,16 @@ class SolveFactorizationTests(unittest.TestCase):
         self.assertEqual(result.result, "2^2 × 5^2")
 
     def test_rejects_number_less_than_two(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_factorization("1", show_steps=False)
+        result = solve_factorization("1", show_steps=False)
+        self.assertIsNotNone(result.error)
 
     def test_rejects_negative_number(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_factorization("-5", show_steps=False)
+        result = solve_factorization("-5", show_steps=False)
+        self.assertIsNotNone(result.error)
 
     def test_rejects_invalid_number(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_factorization("abc", show_steps=False)
+        result = solve_factorization("abc", show_steps=False)
+        self.assertIsNotNone(result.error)
 
     def test_factorizes_number_from_fator_with_spaces(self) -> None:
         result = solve_factorization("fator( 30 )", show_steps=False)

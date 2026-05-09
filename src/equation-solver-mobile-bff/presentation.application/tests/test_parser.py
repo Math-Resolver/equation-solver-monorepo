@@ -7,29 +7,32 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.parser import parse_equation_input
 
 
 class ParseEquationInputTests(unittest.TestCase):
     def test_trims_input_and_splits_equations(self) -> None:
-        parsed = parse_equation_input(" 2 + 2\n3 + 3, 4 + 4 ")
+        parsed, err = parse_equation_input(" 2 + 2\n3 + 3, 4 + 4 ")
 
+        self.assertIsNone(err)
         self.assertEqual(parsed.raw, "2 + 2\n3 + 3, 4 + 4")
         self.assertEqual(parsed.equations, ["2 + 2", "3 + 3", "4 + 4"])
 
     def test_accepts_simple_expression(self) -> None:
-        parsed = parse_equation_input("2 + 2")
+        parsed, err = parse_equation_input("2 + 2")
 
+        self.assertIsNone(err)
         self.assertEqual(parsed.equations, ["2 + 2"])
 
     def test_rejects_empty_input(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            parse_equation_input("   ")
+        parsed, err = parse_equation_input("   ")
+        self.assertIsNone(parsed)
+        self.assertIsNotNone(err)
 
     def test_rejects_payload_without_equations(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            parse_equation_input(", , \n")
+        parsed, err = parse_equation_input(", , \n")
+        self.assertIsNone(parsed)
+        self.assertIsNotNone(err)
 
 
 if __name__ == "__main__":

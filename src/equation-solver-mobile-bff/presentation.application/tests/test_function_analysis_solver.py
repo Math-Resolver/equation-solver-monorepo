@@ -7,7 +7,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.function_analysis_solver import solve_function_analysis
 
 
@@ -39,8 +38,8 @@ class SolveFunctionAnalysisTests(unittest.TestCase):
         self.assertGreater(len(result.steps), 0)
 
     def test_rejects_expression_without_analysis_keyword(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_function_analysis("x^2 + 1", show_steps=False)
+        result = solve_function_analysis("x^2 + 1", show_steps=False)
+        self.assertIsNotNone(result.error)
 
 
 if __name__ == "__main__":

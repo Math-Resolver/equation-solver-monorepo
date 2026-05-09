@@ -7,7 +7,6 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.system_solver import solve_system
 
 
@@ -24,8 +23,8 @@ class SolveSystemTests(unittest.TestCase):
         self.assertEqual(len(result.steps), 3)
 
     def test_rejects_system_with_wrong_number_of_equations(self) -> None:
-        with self.assertRaises(InvalidEquationError):
-            solve_system(["x+y=5"], show_steps=False)
+        result = solve_system(["x+y=5"], show_steps=False)
+        self.assertIsNotNone(result.error)
 
 
 if __name__ == "__main__":
