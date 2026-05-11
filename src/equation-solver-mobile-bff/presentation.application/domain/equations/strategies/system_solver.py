@@ -1,4 +1,3 @@
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
@@ -12,14 +11,22 @@ class SystemSolverStrategy(EquationSolverStrategy):
 
 def solve_system(equations: list[str], show_steps: bool) -> SolveResult:
     if len(equations) != 2:
-        raise InvalidEquationError("O sistema deve conter exatamente duas equações")
+        return SolveResult(result="", steps=[], error="O sistema deve conter exatamente duas equações")
 
-    a1, b1, c1 = _parse_linear_equation(equations[0])
-    a2, b2, c2 = _parse_linear_equation(equations[1])
+    parsed_1, parse_error_1 = _parse_linear_equation(equations[0])
+    if parse_error_1 is not None:
+        return SolveResult(result="", steps=[], error=parse_error_1)
+
+    parsed_2, parse_error_2 = _parse_linear_equation(equations[1])
+    if parse_error_2 is not None:
+        return SolveResult(result="", steps=[], error=parse_error_2)
+
+    a1, b1, c1 = parsed_1
+    a2, b2, c2 = parsed_2
 
     determinant = (a1 * b2) - (a2 * b1)
     if abs(determinant) < 1e-12:
-        raise InvalidEquationError("O sistema não possui solução única")
+        return SolveResult(result="", steps=[], error="O sistema não possui solução única")
 
     x_value = ((c1 * b2) - (c2 * b1)) / determinant
     y_value = ((a1 * c2) - (a2 * c1)) / determinant
@@ -52,36 +59,43 @@ def solve_system(equations: list[str], show_steps: bool) -> SolveResult:
     return SolveResult(result=result_text, steps=steps)
 
 
-def _parse_linear_equation(equation: str) -> tuple[float, float, float]:
+def _parse_linear_equation(equation: str) -> tuple[tuple[float, float, float] | None, str | None]:
     normalized = equation.replace(" ", "")
     if "=" not in normalized:
-        raise InvalidEquationError("Cada equação do sistema deve conter '='")
+        return None, "Cada equação do sistema deve conter '='"
 
     left, right = normalized.split("=", 1)
-    left_x, left_y, left_c = _parse_linear_side(left)
-    right_x, right_y, right_c = _parse_linear_side(right)
+    left_side, left_error = _parse_linear_side(left)
+    if left_error is not None:
+        return None, left_error
+    right_side, right_error = _parse_linear_side(right)
+    if right_error is not None:
+        return None, right_error
 
-    return left_x - right_x, left_y - right_y, right_c - left_c
+    left_x, left_y, left_c = left_side
+    right_x, right_y, right_c = right_side
+
+    return (left_x - right_x, left_y - right_y, right_c - left_c), None
 
 
-def _parse_linear_side(expression: str) -> tuple[float, float, float]:
+def _parse_linear_side(expression: str) -> tuple[tuple[float, float, float] | None, str | None]:
     normalized = expression.replace("-", "+-")
     if normalized.startswith("+-"):
         normalized = normalized[1:]
 
-    a = 0.0
-    b = 0.0
-    c = 0.0
+    coefficients = {"x": 0.0, "y": 0.0, "constant": 0.0}
 
     for term in (part for part in normalized.split("+") if part):
-        if "x" in term:
-            a += _extract_coefficient(term, "x")
-        elif "y" in term:
-            b += _extract_coefficient(term, "y")
+        term_type = _classify_system_term(term)
+        
+        if term_type == "constant":
+            if not _is_number(term):
+                return None, f"Formato inválido em termo do sistema: '{term}'"
+            coefficients["constant"] += float(term)
         else:
-            c += float(term)
+            coefficients[term_type] += _extract_coefficient(term, term_type)
 
-    return a, b, c
+    return (coefficients["x"], coefficients["y"], coefficients["constant"]), None
 
 
 def _extract_coefficient(term: str, symbol: str) -> float:
@@ -100,3 +114,20 @@ def _format_number(value: float) -> str:
     if rounded.is_integer():
         return str(int(rounded))
     return (f"{rounded:.10f}").rstrip("0").rstrip(".")
+
+
+def _is_number(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if stripped[0] in "+-":
+        stripped = stripped[1:]
+    return stripped.replace(".", "", 1).isdigit()
+
+
+def _classify_system_term(term: str) -> str:
+    if "x" in term:
+        return "x"
+    if "y" in term:
+        return "y"
+    return "constant"

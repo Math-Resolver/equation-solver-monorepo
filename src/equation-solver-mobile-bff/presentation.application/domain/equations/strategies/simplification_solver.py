@@ -1,4 +1,3 @@
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
@@ -26,15 +25,15 @@ def solve_simplification(expression: str, show_steps: bool) -> SolveResult:
         SolveResult with the simplified expression
     """
     normalized = expression.strip()
-    
+
     if not _contains_variables(normalized):
-        raise InvalidEquationError("Expressão deve conter ao menos uma variável (ex: x, y, z)")
-    
+        return SolveResult(result="", steps=[], error="Expressão deve conter ao menos uma variável (ex: x, y, z)")
+
     result = _simplify_like_terms(normalized)
-    
+
     if not show_steps:
         return SolveResult(result=result, steps=[])
-    
+
     steps = [
         StepResult(
             rule="Agrupa termos semelhantes",
@@ -42,7 +41,6 @@ def solve_simplification(expression: str, show_steps: bool) -> SolveResult:
             after=result,
         ),
     ]
-    
     return SolveResult(result=result, steps=steps)
 
 
@@ -76,25 +74,12 @@ def _simplify_like_terms(expression: str) -> str:
         if var == "":
             result_parts.append(f"{int(coeff) if coeff.is_integer() else coeff}")
         else:
-            if coeff == 1:
-                result_parts.append(var)
-            elif coeff == -1:
-                result_parts.append(f"-{var}")
-            else:
-                coeff_str = str(int(coeff) if coeff.is_integer() else coeff)
-                result_parts.append(f"{coeff_str}{var}")
+            result_parts.append(_format_variable_term(coeff, var))
     
     if not result_parts:
         return "0"
     
-    result = result_parts[0]
-    for part in result_parts[1:]:
-        if part.startswith("-"):
-            result += part
-        else:
-            result += f"+{part}"
-    
-    return result
+    return _format_result_with_signs(result_parts)
 
 
 def _extract_variable(term: str) -> str:
@@ -120,3 +105,24 @@ def _extract_coefficient_value(term: str) -> str:
         return "-1"
     
     return prefix
+
+
+def _format_variable_term(coeff: float, var: str) -> str:
+    special_terms = {
+        1: var,
+        -1: f"-{var}",
+    }
+    if coeff in special_terms:
+        return special_terms[coeff]
+
+    coeff_str = str(int(coeff) if coeff.is_integer() else coeff)
+    return f"{coeff_str}{var}"
+
+
+def _format_result_with_signs(parts: list[str]) -> str:
+    """Format result by joining parts with appropriate signs."""
+    result = parts[0]
+    for part in parts[1:]:
+        sign = "" if part.startswith("-") else "+"
+        result += sign + part
+    return result

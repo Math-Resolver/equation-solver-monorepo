@@ -1,6 +1,10 @@
-from domain.equations.errors import InvalidEquationError
+from collections.abc import Callable
+
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
+
+
+NumberExtractor = Callable[[str], str | None]
 
 
 class FactorizationSolverStrategy(EquationSolverStrategy):
@@ -22,26 +26,22 @@ def solve_factorization(input_str: str, show_steps: bool) -> SolveResult:
         SolveResult with the prime factorization
     """
     normalized = input_str.strip()
+    number_str = _extract_number_text(normalized)
     
-    if normalized.lower().startswith("fator(") or normalized.lower().startswith("factorize("):
-        number_str = normalized[normalized.index("(") + 1:normalized.rindex(")")].strip()
-    else:
-        number_str = normalized
-    
-    try:
-        number = int(number_str)
-    except ValueError:
-        raise InvalidEquationError(f"Número inválido para fatoração: '{number_str}'")
-    
+    if not _is_integer_text(number_str):
+        return SolveResult(result="", steps=[], error=f"Número inválido para fatoração: '{number_str}'")
+
+    number = int(number_str)
+
     if number < 2:
-        raise InvalidEquationError("O número deve ser maior ou igual a 2 para fatoração")
-    
+        return SolveResult(result="", steps=[], error="O número deve ser maior ou igual a 2 para fatoração")
+
     factors = _get_prime_factors(number)
     result_text = _format_factorization(factors)
-    
+
     if not show_steps:
         return SolveResult(result=result_text, steps=[])
-    
+
     steps = _generate_factorization_steps(number, factors)
     return SolveResult(result=result_text, steps=steps)
 
@@ -109,3 +109,39 @@ def _generate_factorization_steps(number: int, factors: list[int]) -> list[StepR
     )
     
     return steps
+
+
+def _extract_number_text(input_text: str) -> str:
+    for extractor in _NUMBER_EXTRACTORS:
+        extracted = extractor(input_text)
+        if extracted is not None:
+            return extracted
+
+    return input_text
+
+
+def _extract_from_wrapped_call(input_text: str) -> str | None:
+    lowered = input_text.lower()
+    if not lowered.startswith("fator(") and not lowered.startswith("factorize("):
+        return None
+
+    return input_text[input_text.index("(") + 1:input_text.rindex(")")].strip()
+
+
+def _extract_plain_number(input_text: str) -> str | None:
+    return input_text
+
+
+_NUMBER_EXTRACTORS: tuple[NumberExtractor, ...] = (
+    _extract_from_wrapped_call,
+    _extract_plain_number,
+)
+
+
+def _is_integer_text(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if stripped[0] in "+-":
+        return stripped[1:].isdigit()
+    return stripped.isdigit()

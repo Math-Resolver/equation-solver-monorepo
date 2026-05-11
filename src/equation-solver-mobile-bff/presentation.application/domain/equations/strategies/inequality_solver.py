@@ -1,6 +1,5 @@
 import re
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
@@ -25,15 +24,30 @@ def solve_inequality(inequality: str, show_steps: bool) -> SolveResult:
     """
     normalized = inequality.replace(" ", "")
 
-    operator = _require_inequality_operator(normalized)
-    left_expression, right_expression = _split_inequality(normalized, operator)
-    left_coeff, left_const = _parse_linear_expression(left_expression)
-    right_coeff, right_const = _parse_linear_expression(right_expression)
+    operator = _extract_inequality_operator(normalized)
+    if operator is None:
+        return SolveResult(result="", steps=[], error="Inequação deve conter um dos operadores: <, >, <=, >=")
+
+    split_result, split_error = _split_inequality(normalized, operator)
+    if split_error is not None:
+        return SolveResult(result="", steps=[], error=split_error)
+    left_expression, right_expression = split_result
+
+    left_parse, left_parse_error = _parse_linear_expression(left_expression)
+    if left_parse_error is not None:
+        return SolveResult(result="", steps=[], error=left_parse_error)
+    right_parse, right_parse_error = _parse_linear_expression(right_expression)
+    if right_parse_error is not None:
+        return SolveResult(result="", steps=[], error=right_parse_error)
+
+    left_coeff, left_const = left_parse
+    right_coeff, right_const = right_parse
 
     a = left_coeff - right_coeff
     b = right_const - left_const
 
-    _ensure_nonzero_coefficient(a)
+    if abs(a) < 1e-12:
+        return SolveResult(result="", steps=[], error="Inequação deve ter coeficiente de x diferente de zero")
 
     solution_operator = _flip_operator(operator) if a < 0 else operator
     result_text = _format_inequality_result(b / a, solution_operator)
@@ -47,28 +61,16 @@ def solve_inequality(inequality: str, show_steps: bool) -> SolveResult:
     return SolveResult(result=result_text, steps=steps)
 
 
-def _require_inequality_operator(expression: str) -> str:
-    operator = _extract_inequality_operator(expression)
-    if operator is None:
-        raise InvalidEquationError("Inequação deve conter um dos operadores: <, >, <=, >=")
-    return operator
-
-
 def _extract_inequality_operator(expression: str) -> str | None:
     """Extract the inequality operator from the expression."""
     return next((operator for operator in _INEQUALITY_OPERATORS if operator in expression), None)
 
 
-def _split_inequality(expression: str, operator: str) -> tuple[str, str]:
+def _split_inequality(expression: str, operator: str) -> tuple[tuple[str, str] | None, str | None]:
     parts = expression.split(operator)
     if len(parts) != 2:
-        raise InvalidEquationError("Formato inválido de inequação")
-    return parts[0], parts[1]
-
-
-def _ensure_nonzero_coefficient(a: float) -> None:
-    if abs(a) < 1e-12:
-        raise InvalidEquationError("Inequação deve ter coeficiente de x diferente de zero")
+        return None, "Formato inválido de inequação"
+    return (parts[0], parts[1]), None
 
 
 def _build_solution_steps(
@@ -100,7 +102,7 @@ def _flip_operator(operator: str) -> str:
     return flips[operator]
 
 
-def _parse_linear_expression(expression: str) -> tuple[float, float]:
+def _parse_linear_expression(expression: str) -> tuple[tuple[float, float] | None, str | None]:
     """Parse a linear expression to extract coefficient of x and constant."""
     normalized = expression.replace("**", "^").replace("-", "+-")
     if normalized.startswith("+-"):
@@ -111,14 +113,19 @@ def _parse_linear_expression(expression: str) -> tuple[float, float]:
     
     for term in (part for part in normalized.split("+") if part):
         if "x" in term:
-            coeff += _extract_coefficient(term, "x")
+            parsed_coeff, coeff_error = _extract_coefficient(term, "x")
+            if coeff_error is not None:
+                return None, coeff_error
+            coeff += parsed_coeff
         else:
+            if not _is_number(term):
+                return None, "Formato inválido de inequação"
             const += float(term)
     
-    return coeff, const
+    return (coeff, const), None
 
 
-def _extract_coefficient(term: str, symbol: str) -> float:
+def _extract_coefficient(term: str, symbol: str) -> tuple[float | None, str | None]:
     """Extract the coefficient from a term."""
     prefix = term.split(symbol, 1)[0].replace("*", "")
 
@@ -129,9 +136,15 @@ def _extract_coefficient(term: str, symbol: str) -> float:
     }
 
     if prefix in special_coefficients:
-        return special_coefficients[prefix]
+        return special_coefficients[prefix], None
 
-    return float(prefix)
+    if not _is_number(prefix):
+        return None, "Formato inválido de inequação"
+    return float(prefix), None
+
+
+def _is_number(text: str) -> bool:
+    return bool(re.fullmatch(r"[+-]?\d+(?:\.\d+)?", text))
 
 
 def _format_inequality_result(x_value: float, operator: str) -> str:

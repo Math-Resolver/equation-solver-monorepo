@@ -1,9 +1,17 @@
 import re
 import math
+from dataclasses import dataclass
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
+
+
+@dataclass(frozen=True)
+class OperationRule:
+    pattern: re.Pattern[str]
+
+    def match(self, expression: str) -> re.Match[str] | None:
+        return self.pattern.search(expression)
 
 
 class ExpressionSolverStrategy(EquationSolverStrategy):
@@ -15,8 +23,10 @@ class ExpressionSolverStrategy(EquationSolverStrategy):
 
 def solve_expression(expression: str, show_steps: bool) -> SolveResult:
     normalized = expression.strip()
-    _validate_expression_safety(normalized)
-    
+    validation_error = _validate_expression_safety(normalized)
+    if validation_error is not None:
+        return SolveResult(result="", steps=[], error=validation_error)
+
     normalized = _convert_notation(normalized)
 
     result_value = eval(normalized, {"__builtins__": {}, "sqrt": math.sqrt})
@@ -42,8 +52,7 @@ def _generate_resolution_steps(expression: str, final_result: str) -> list[StepR
     
     while current != final_result:
         next_operation = _find_and_evaluate_next_operation(current)
-        
-        if not next_operation:
+        if next_operation is None:
             break
         
         operation_expr, operation_result = next_operation
@@ -69,29 +78,43 @@ def _generate_resolution_steps(expression: str, final_result: str) -> list[StepR
 
 
 def _find_and_evaluate_next_operation(expression: str) -> tuple[str, str] | None:
-    operations_order = [
-        (r"\d+(?:\.\d+)?\s*\*\*\s*\d+(?:\.\d+)?", "**"),
-        (r"sqrt\s*\(\s*\d+(?:\.\d+)?\s*\)", "sqrt"),
-        (r"\d+(?:\.\d+)?\s*\*\s*\d+(?:\.\d+)?", "*"),  
-        (r"\d+(?:\.\d+)?\s*/\s*\d+(?:\.\d+)?", "/"), 
-        (r"\d+(?:\.\d+)?\s*\+\s*\d+(?:\.\d+)?", "+"), 
-        (r"\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?", "-"),  
-    ]
-    
-    for pattern, _ in operations_order:
-        match = re.search(pattern, expression)
-        if match:
-            operation_expr = match.group(0)
-            operation_result = eval(operation_expr, {"__builtins__": {}, "sqrt": math.sqrt})
-            result_str = str(int(operation_result) if isinstance(operation_result, float) and operation_result.is_integer() else operation_result)
-            new_expression = expression[:match.start()] + result_str + expression[match.end():]
-            return operation_expr, new_expression
+    for rule in _OPERATION_RULES:
+        match = rule.match(expression)
+        if match is None:
+            continue
+
+        operation_expr = match.group(0)
+        operation_result = eval(operation_expr, {"__builtins__": {}, "sqrt": math.sqrt})
+        result_str = _format_numeric_result(operation_result)
+        new_expression = expression[:match.start()] + result_str + expression[match.end():]
+        return operation_expr, new_expression
     
     return None
 
 
-def _validate_expression_safety(expression: str) -> None:
+def _format_numeric_result(value: float | int) -> str:
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
+_OPERATION_RULES: tuple[OperationRule, ...] = (
+    OperationRule(re.compile(r"\d+(?:\.\d+)?\s*\*\*\s*\d+(?:\.\d+)?")),
+    OperationRule(re.compile(r"sqrt\s*\(\s*\d+(?:\.\d+)?\s*\)")),
+    OperationRule(re.compile(r"\d+(?:\.\d+)?\s*\*\s*\d+(?:\.\d+)?")),
+    OperationRule(re.compile(r"\d+(?:\.\d+)?\s*/\s*\d+(?:\.\d+)?")),
+    OperationRule(re.compile(r"\d+(?:\.\d+)?\s*\+\s*\d+(?:\.\d+)?")),
+    OperationRule(re.compile(r"\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?")),
+)
+
+
+def _validate_expression_safety(expression: str) -> str | None:
     allowed_chars = set("0123456789+-*/(). ^")
     allowed_chars.update("raizRAIZsqrtSQRT")
     if not all(c in allowed_chars for c in expression):
-        raise InvalidEquationError(f"Expressão contém caracteres inválidos: '{expression}'")
+        return f"Expressão contém caracteres inválidos: '{expression}'"
+
+    if not expression:
+        return "Expressão vazia"
+
+    return None

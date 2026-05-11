@@ -1,6 +1,5 @@
 import cmath
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
@@ -14,10 +13,13 @@ class QuadraticSolverStrategy(EquationSolverStrategy):
 
 def solve_quadratic(equation: str, show_steps: bool) -> SolveResult:
     normalized = equation.replace(" ", "")
-    a, b, c = _parse_quadratic_equation(normalized)
+    parsed, parse_error = _parse_quadratic_equation(normalized)
+    if parse_error is not None:
+        return SolveResult(result="", steps=[], error=parse_error)
 
+    a, b, c = parsed
     if abs(a) < 1e-12:
-        raise InvalidEquationError("Equação do segundo grau deve ter coeficiente a diferente de zero")
+        return SolveResult(result="", steps=[], error="Equação do segundo grau deve ter coeficiente a diferente de zero")
 
     delta = (b * b) - (4 * a * c)
     sqrt_delta = cmath.sqrt(delta)
@@ -47,22 +49,28 @@ def solve_quadratic(equation: str, show_steps: bool) -> SolveResult:
             after=result_text,
         ),
     ]
-
     return SolveResult(result=result_text, steps=steps)
 
 
-def _parse_quadratic_equation(equation: str) -> tuple[float, float, float]:
+def _parse_quadratic_equation(equation: str) -> tuple[tuple[float, float, float] | None, str | None]:
     if "=" not in equation:
-        raise InvalidEquationError("Equação do segundo grau deve conter '='")
+        return None, "Equação do segundo grau deve conter '='"
 
     left, right = equation.split("=", 1)
-    left_a, left_b, left_c = _parse_quadratic_side(left)
-    right_a, right_b, right_c = _parse_quadratic_side(right)
+    left_side, left_error = _parse_quadratic_side(left)
+    if left_error is not None:
+        return None, left_error
+    right_side, right_error = _parse_quadratic_side(right)
+    if right_error is not None:
+        return None, right_error
 
-    return left_a - right_a, left_b - right_b, left_c - right_c
+    left_a, left_b, left_c = left_side
+    right_a, right_b, right_c = right_side
+
+    return (left_a - right_a, left_b - right_b, left_c - right_c), None
 
 
-def _parse_quadratic_side(expression: str) -> tuple[float, float, float]:
+def _parse_quadratic_side(expression: str) -> tuple[tuple[float, float, float] | None, str | None]:
     normalized = expression.replace("**", "^")
 
     if not normalized:
@@ -72,19 +80,20 @@ def _parse_quadratic_side(expression: str) -> tuple[float, float, float]:
     if normalized.startswith("+-"):
         normalized = normalized[1:]
 
-    a = 0.0
-    b = 0.0
-    c = 0.0
+    coefficients = {"quadratic": 0.0, "linear": 0.0, "constant": 0.0}
 
     for term in (part for part in normalized.split("+") if part):
-        if "x^2" in term:
-            a += _extract_coefficient(term, "x^2")
-        elif "x" in term:
-            b += _extract_coefficient(term, "x")
+        term_type = _classify_quadratic_term(term)
+        
+        if term_type == "constant":
+            if not _is_number(term):
+                return None, f"Formato inválido na expressão: '{expression}'"
+            coefficients["constant"] += float(term)
         else:
-            c += float(term)
+            symbol = "x^2" if term_type == "quadratic" else "x"
+            coefficients[term_type] += _extract_coefficient(term, symbol)
 
-    return a, b, c
+    return (coefficients["quadratic"], coefficients["linear"], coefficients["constant"]), None
 
 
 def _extract_coefficient(term: str, symbol: str) -> float:
@@ -115,3 +124,20 @@ def _format_number(value: complex | float) -> str:
         return (f"{rounded:.10f}").rstrip("0").rstrip(".")
 
     return str(value)
+
+
+def _is_number(text: str) -> bool:
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if stripped[0] in "+-":
+        stripped = stripped[1:]
+    return stripped.replace(".", "", 1).isdigit()
+
+
+def _classify_quadratic_term(term: str) -> str:
+    if "x^2" in term:
+        return "quadratic"
+    if "x" in term:
+        return "linear"
+    return "constant"

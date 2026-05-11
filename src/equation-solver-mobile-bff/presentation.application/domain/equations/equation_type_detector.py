@@ -2,13 +2,6 @@ from collections.abc import Callable
 from enum import Enum
 import re
 
-from sympy import Poly
-from sympy.parsing.sympy_parser import (
-    implicit_multiplication_application,
-    parse_expr,
-    standard_transformations,
-)
-
 from domain.equations.parser import ParsedEquation
 
 
@@ -105,28 +98,19 @@ def _is_simple_expression(equation: str) -> bool:
 
 
 def _detect_polynomial_degree(equation: str) -> int | None:
-    try:
-        expression = _build_sympy_expression(equation)
-        if not expression.free_symbols:
-            return None
+    normalized = equation.replace(" ", "").replace("**", "^").lower()
 
-        polynomial = Poly(expression, *sorted(expression.free_symbols, key=lambda symbol: symbol.name))
-        return polynomial.total_degree()
-    except Exception:
+    if "x" not in normalized:
         return None
 
+    if "x^2" in normalized:
+        return 2
 
-def _build_sympy_expression(equation: str):
-    normalized = equation.replace("^", "**")
-    transformations = standard_transformations + (
-        implicit_multiplication_application,
-    )
+    linear_pattern = r"(^|[+\-*/=(])x($|[+\-*/=)])|(^|[+\-*/=(])\d+\*?x($|[+\-*/=)])"
+    if re.search(linear_pattern, normalized):
+        return 1
 
-    if "=" in normalized:
-        left, right = normalized.split("=", 1)
-        return parse_expr(left, transformations=transformations) - parse_expr(right, transformations=transformations)
-
-    return parse_expr(normalized, transformations=transformations)
+    return None
 
 
 def detect_equation_type(parsed: ParsedEquation) -> EquationType:

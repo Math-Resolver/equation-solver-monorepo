@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -12,3 +13,4 @@ class StepResult:
 class SolveResult:
     result: str
     steps: list[StepResult]
+    error: Optional[str] = None

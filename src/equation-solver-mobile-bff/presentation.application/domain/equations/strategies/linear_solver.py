@@ -1,6 +1,5 @@
 import re
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
@@ -17,22 +16,16 @@ def solve_linear(equation: str, show_steps: bool) -> SolveResult:
 
     match = re.fullmatch(r"([+-]?\d*)\*?x([+-]\d+)?=([+-]?\d+)", compact)
     if not match:
-        raise InvalidEquationError("Equação linear deve ser do seguinte formato: '2*x+5=15'")
+        return SolveResult(result="", steps=[], error="Equação linear deve ser do seguinte formato: '2*x+5=15'")
 
     a_raw, b_raw, c_raw = match.groups()
-
-    if a_raw in ("", "+"):
-        a = 1
-    elif a_raw == "-":
-        a = -1
-    else:
-        a = int(a_raw)
+    a = _parse_leading_coefficient(a_raw)
 
     b = int(b_raw) if b_raw else 0
     c = int(c_raw)
 
     if a == 0:
-        raise InvalidEquationError("O coeficiente de x não pode ser zero")
+        return SolveResult(result="", steps=[], error="O coeficiente de x não pode ser zero")
 
     rhs_after_subtract = c - b
     x_value = rhs_after_subtract / a
@@ -56,3 +49,14 @@ def solve_linear(equation: str, show_steps: bool) -> SolveResult:
     ]
 
     return SolveResult(result=result_text, steps=steps)
+
+
+def _parse_leading_coefficient(raw: str) -> int:
+    special_values = {
+        "": 1,
+        "+": 1,
+        "-": -1,
+    }
+    if raw in special_values:
+        return special_values[raw]
+    return int(raw)

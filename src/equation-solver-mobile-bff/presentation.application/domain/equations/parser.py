@@ -1,4 +1,4 @@
-from domain.equations.errors import InvalidEquationError
+from collections.abc import Callable
 
 
 class ParsedEquation:
@@ -7,28 +7,29 @@ class ParsedEquation:
         self.equations = equations
 
 
-def parse_equation_input(raw: str) -> ParsedEquation:
+def parse_equation_input(raw: str) -> tuple[ParsedEquation | None, str | None]:
+    """Parse equation input and return (parsed, error) without raising exceptions."""
     normalized = raw.strip()
-    _validate_not_empty(normalized)
+    text_error = _run_validators(normalized, (_validate_not_empty,))
+    if text_error is not None:
+        return None, text_error
 
     equations = _split_and_normalize_equations(normalized)
-    _validate_equations_exist(equations)
-    _validate_equation_format(equations)
 
-    return ParsedEquation(raw=normalized, equations=equations)
+    equations_error = _run_validators(
+        equations,
+        (_validate_equations_exist, _validate_equation_format),
+    )
+    if equations_error is not None:
+        return None, equations_error
 
-
-def parse_equation_input_safe(raw: str) -> tuple[ParsedEquation | None, str | None]:
-    """Parse equation input without propagating domain exceptions."""
-    try:
-        return parse_equation_input(raw), None
-    except InvalidEquationError as exc:
-        return None, str(exc)
+    return ParsedEquation(raw=normalized, equations=equations), None
 
 
-def _validate_not_empty(text: str) -> None:
-    if not text:
-        raise InvalidEquationError("A equação não pode ser vazia")
+def _validate_not_empty(text: str) -> str | None:
+    if text:
+        return None
+    return "A equação não pode ser vazia"
 
 
 def _split_and_normalize_equations(text: str) -> list[str]:
@@ -37,16 +38,18 @@ def _split_and_normalize_equations(text: str) -> list[str]:
     return [part.strip() for part in raw_parts if part.strip()]
 
 
-def _validate_equations_exist(equations: list[str]) -> None:
-    if not equations:
-        raise InvalidEquationError("Nenhuma equação encontrada no payload")
+def _validate_equations_exist(equations: list[str]) -> str | None:
+    if equations:
+        return None
+    return "Nenhuma equação encontrada no payload"
 
 
-def _validate_equation_format(equations: list[str]) -> None:
+def _validate_equation_format(equations: list[str]) -> str | None:
     for eq in equations:
         if _is_valid_mathematical_expression(eq):
             continue
-        raise InvalidEquationError(f"Formato inválido: '{eq}'")
+        return f"Formato inválido: '{eq}'"
+    return None
 
 
 def _is_valid_mathematical_expression(expression: str) -> bool:
@@ -58,3 +61,16 @@ def _is_valid_mathematical_expression(expression: str) -> bool:
     has_function = any(func in normalized.lower() for func in ["fator(", "factorize(", "raiz(", "sqrt("])
     
     return has_numbers and (has_operators_or_equals or has_function)
+
+
+def _run_validators[
+    T
+](
+    value: T,
+    validators: tuple[Callable[[T], str | None], ...],
+) -> str | None:
+    for validator in validators:
+        error = validator(value)
+        if error is not None:
+            return error
+    return None

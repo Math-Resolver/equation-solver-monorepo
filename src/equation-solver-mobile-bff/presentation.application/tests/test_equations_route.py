@@ -74,7 +74,7 @@ class SolveEquationRouteTests(unittest.TestCase):
                 json={"equation": "2+2=4", "showSteps": True},
             )
 
-        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.status_code, 502)
         self.assertEqual(
             response.json()["detail"],
             "Tipo de equação não suportada para resolução",

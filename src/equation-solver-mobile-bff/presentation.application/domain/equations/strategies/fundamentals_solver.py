@@ -1,1 +1,0 @@
-#HERE well solve all basic operations with linear equations, and then we can expand to more complex types like quadratics and systems.

@@ -1,7 +1,6 @@
 import re
 from fractions import Fraction
 
-from domain.equations.errors import InvalidEquationError
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
@@ -25,8 +24,10 @@ def solve_fraction(expression: str, show_steps: bool) -> SolveResult:
         SolveResult with the fraction result
     """
     normalized = expression.strip()
-    _validate_fraction_expression(normalized)
-    
+    validation_error = _validate_fraction_expression(normalized)
+    if validation_error is not None:
+        return SolveResult(result="", steps=[], error=validation_error)
+
     result_value = _evaluate_fraction_expression(normalized)
     result_text = _format_fraction(result_value)
 
@@ -37,14 +38,16 @@ def solve_fraction(expression: str, show_steps: bool) -> SolveResult:
     return SolveResult(result=result_text, steps=steps)
 
 
-def _validate_fraction_expression(expression: str) -> None:
+def _validate_fraction_expression(expression: str) -> str | None:
     """Validate that the expression contains only fraction-safe characters."""
     allowed_chars = set("0123456789+-*/(). ")
     if not all(c in allowed_chars for c in expression):
-        raise InvalidEquationError(f"Expressão de fração contém caracteres inválidos: '{expression}'")
+        return f"Expressão de fração contém caracteres inválidos: '{expression}'"
     
     if "//" in expression:
-        raise InvalidEquationError(f"Formato inválido para fração: '{expression}'")
+        return f"Formato inválido para fração: '{expression}'"
+
+    return None
 
 
 def _evaluate_fraction_expression(expression: str) -> Fraction:
@@ -59,19 +62,13 @@ def _evaluate_fraction_expression(expression: str) -> Fraction:
     """
     normalized = expression.replace(" ", "")
     
-    try:
-        def replace_fraction(match):
-            return f"Fraction({match.group(1)},{match.group(2)})"
-        
-        converted = re.sub(r'(\d+)\s*/\s*(\d+)', replace_fraction, normalized)
-        
-        result = eval(converted, {"__builtins__": {}, "Fraction": Fraction})
-        return result
-    except (ValueError, ZeroDivisionError, SyntaxError) as e:
-        raise InvalidEquationError(f"Erro ao avaliar fração: {str(e)}")
+    def replace_fraction(match):
+        return f"Fraction({match.group(1)},{match.group(2)})"
 
+    converted = re.sub(r'(\d+)\s*/\s*(\d+)', replace_fraction, normalized)
 
-
+    result = eval(converted, {"__builtins__": {}, "Fraction": Fraction})
+    return result
 
 
 def _format_fraction(frac: Fraction) -> str:

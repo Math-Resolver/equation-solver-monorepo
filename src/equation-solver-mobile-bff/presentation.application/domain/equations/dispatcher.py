@@ -1,5 +1,4 @@
 from domain.equations.equation_type_detector import EquationType
-from domain.equations.errors import InvalidEquationError
 from domain.equations.parser import ParsedEquation
 from domain.equations.strategies.expression_solver import ExpressionSolverStrategy
 from domain.equations.strategies.factorization_solver import FactorizationSolverStrategy
@@ -25,6 +24,8 @@ SOLVER_STRATEGIES = {
     EquationType.SIMPLIFICATION: SimplificationSolverStrategy(),
 }
 
+MULTI_EQUATION_TYPES = {EquationType.SYSTEM}
+
 
 def is_supported_equation_type(equation_type: object) -> bool:
     return equation_type in SOLVER_STRATEGIES
@@ -44,22 +45,6 @@ def dispatch_solver(parsed: ParsedEquation, equation_type: EquationType, show_st
 
     """
     strategy = SOLVER_STRATEGIES[equation_type]
-    
-    if equation_type == EquationType.SYSTEM:
-        equation_data = parsed.equations
-    else:
-        equation_data = parsed.equations[0]
+    equation_data = parsed.equations if equation_type in MULTI_EQUATION_TYPES else parsed.equations[0]
     
     return strategy.solve(equation_data, show_steps=show_steps)
-
-
-def dispatch_solver_safe(
-    parsed: ParsedEquation,
-    equation_type: EquationType,
-    show_steps: bool,
-) -> tuple[SolveResult | None, str | None]:
-    try:
-        result = dispatch_solver(parsed=parsed, equation_type=equation_type, show_steps=show_steps)
-        return result, None
-    except InvalidEquationError as exc:
-        return None, str(exc)

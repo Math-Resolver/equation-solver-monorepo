@@ -1,2 +1,0 @@
-class InvalidEquationError(ValueError):
-    pass
