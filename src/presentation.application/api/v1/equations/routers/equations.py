@@ -1,10 +1,11 @@
 from fastapi import APIRouter, BackgroundTasks, Request, status
 from fastapi.responses import JSONResponse
 
-from api.v1.schemas.solve_equation_request import SolveEquationRequest
-from api.v1.schemas.solve_equation_response import SolveEquationResponse, Step
+from api.v1.conversation.schemas.solve_equation_request import SolveEquationRequest
+from api.v1.conversation.schemas.solve_equation_response import SolveEquationResponse, Step
 from domain.equations.dispatcher import dispatch_solver, is_supported_equation_type
-from domain.equations.equation_type_detector import EquationType, detect_equation_type
+from domain.equations.equation_type_detector import EquationType
+import api.v1.routers.equations as compat_routers_equations
 from domain.equations.parser import parse_equation_input
 from domain.equations.history.persistence import schedule_history_persistence
 
@@ -44,7 +45,7 @@ async def solve_equation(
             content={"detail": parse_error},
         )
 
-    equation_type = detect_equation_type(parsed)
+    equation_type = compat_routers_equations.detect_equation_type(parsed)
     if equation_type == EquationType.UNKNOWN or not is_supported_equation_type(equation_type):
         return JSONResponse(
             status_code=status.HTTP_502_BAD_GATEWAY,

@@ -1,0 +1,137 @@
+[
+  {
+    "category": "aritmetica",
+    "description": "precedencia de operadores",
+    "request": {
+      "equation": "2+3*4",
+      "showSteps": true
+    },
+    "expectedResult": "14"
+  },
+  {
+    "category": "aritmetica",
+    "description": "parenteses",
+    "request": {
+      "equation": "(2+3)*4",
+      "showSteps": true
+    },
+    "expectedResult": "20"
+  },
+  {
+    "category": "inteiros",
+    "description": "soma com negativo",
+    "request": {
+      "equation": "-7+12",
+      "showSteps": false
+    },
+    "expectedResult": "5"
+  },
+  {
+    "category": "inteiros",
+    "description": "subtracao entre inteiros",
+    "request": {
+      "equation": "18-25",
+      "showSteps": false
+    },
+    "expectedResult": "-7"
+  },
+  {
+    "category": "fracoes",
+    "description": "soma de fracoes",
+    "request": {
+      "equation": "1/2+1/3",
+      "showSteps": true
+    },
+    "expectedResult": "5/6"
+  },
+  {
+    "category": "fracoes",
+    "description": "divisao de fracoes",
+    "request": {
+      "equation": "1/2 / 1/4",
+      "showSteps": false
+    },
+    "expectedResult": "2"
+  },
+  {
+    "category": "fracoes",
+    "description": "fracao com inteiro",
+    "request": {
+      "equation": "2+1/2",
+      "showSteps": false
+    },
+    "expectedResult": "5/2"
+  },
+  {
+    "category": "decimais",
+    "description": "soma decimal",
+    "request": {
+      "equation": "1.5+2.25",
+      "showSteps": false
+    },
+    "expectedResult": "3.75"
+  },
+  {
+    "category": "decimais",
+    "description": "expressao decimal com multiplicacao",
+    "request": {
+      "equation": "0.2*3+1.4",
+      "showSteps": false
+    },
+    "expectedResult": "2"
+  },
+  {
+    "category": "potencias",
+    "description": "potencia com acento circunflexo",
+    "request": {
+      "equation": "2^5",
+      "showSteps": true
+    },
+    "expectedResult": "32"
+  },
+  {
+    "category": "potencias",
+    "description": "potencia com notacao python",
+    "request": {
+      "equation": "3**3",
+      "showSteps": false
+    },
+    "expectedResult": "27"
+  },
+  {
+    "category": "raizes",
+    "description": "raiz com sqrt",
+    "request": {
+      "equation": "sqrt(81)",
+      "showSteps": true
+    },
+    "expectedResult": "9"
+  },
+  {
+    "category": "raizes",
+    "description": "raiz com notacao em portugues",
+    "request": {
+      "equation": "raiz(25)+2",
+      "showSteps": true
+    },
+    "expectedResult": "7"
+  },
+  {
+    "category": "fatores",
+    "description": "fatoracao com comando fator",
+    "request": {
+      "equation": "fator(84)",
+      "showSteps": true
+    },
+    "expectedResult": "2^2 × 3 × 7"
+  },
+  {
+    "category": "fatores",
+    "description": "fatoracao com comando factorize",
+    "request": {
+      "equation": "factorize(100)",
+      "showSteps": false
+    },
+    "expectedResult": "2^2 × 5^2"
+  }
+]
