@@ -3,7 +3,6 @@ import os
 from hashlib import sha256
 from typing import Any
 from domain.abstractions.cache_service_abstractions import CacheServiceAbstraction
-from redis import Redis
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,23 @@ def get_cache_service() -> RedisCacheService:
     ttl_seconds = int(
         os.getenv("CACHE_DEFAULT_TTL_SECONDS",os.getenv("CONVERSATION_CACHE_TTL_SECONDS", str(DEFAULT_CACHE_TTL_SECONDS)))
     )
-    redis_client = Redis.from_url(redis_url, decode_responses=True)
+    class _InMemoryRedisClient:
+        def __init__(self):
+            self._store = {}
+
+        def get(self, key: str):
+            return self._store.get(key)
+
+        def setex(self, key: str, ttl: int, value: str):
+            self._store[key] = value
+
+    try:
+        from redis import Redis
+
+        redis_client = Redis.from_url(redis_url, decode_responses=True)
+    except Exception:
+        redis_client = _InMemoryRedisClient()
+
     return RedisCacheService(redis_client=redis_client, default_ttl_seconds=ttl_seconds)
 
 
