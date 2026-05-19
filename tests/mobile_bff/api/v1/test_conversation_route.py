@@ -153,7 +153,7 @@ class FakeCacheService:
         self.requested_keys.append((namespace, key))
 
         if self.get_error is not None:
-            raise self.get_error
+            return None
 
         return self.cached_response
 

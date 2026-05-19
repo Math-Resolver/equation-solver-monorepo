@@ -10,13 +10,13 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from main import app
+from main import app 
 
 
 class BasicMathCasesFileTests(unittest.TestCase):
     def setUp(self) -> None:
         self.client = TestClient(app)
-        self.cases_path = APP_ROOT / "tests" / "manual" / "basic_math_cases.json"
+        self.cases_path = APP_ROOT / "domain" / "manual" / "basic_math_cases.json"
 
     def test_all_cases_in_file_match_expected_result(self) -> None:
         with self.cases_path.open("r", encoding="utf-8") as file:
