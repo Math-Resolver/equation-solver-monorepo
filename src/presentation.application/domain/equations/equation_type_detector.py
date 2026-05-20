@@ -15,6 +15,7 @@ class EquationType(str, Enum):
     INEQUALITY = "inequality"
     SIMPLIFICATION = "simplification"
     FUNCTION_ANALYSIS = "function_analysis"
+    STATISTICS = "statistics"
     UNKNOWN = "unknown"
 
 def _is_quadratic(equation: str) -> bool:
@@ -89,6 +90,23 @@ def _is_function_analysis(equation: str) -> bool:
     )
 
 
+def _is_statistics(equation: str) -> bool:
+    lowered = equation.lower()
+    return any(
+        lowered.startswith(prefix)
+        for prefix in (
+            "media:",
+            "média:",
+            "mediana:",
+            "moda:",
+            "combina:",
+            "combinação:",
+            "combinacao:",
+            "ncr:",
+        )
+    )
+
+
 def _is_simple_expression(equation: str) -> bool:
     has_numbers = any(char.isdigit() for char in equation)
     has_operators = any(op in equation for op in "+-*/" "^")
@@ -135,5 +153,6 @@ DETECTION_RULES: tuple[tuple[EquationType, Callable[[str], bool]], ...] = (
     (EquationType.QUADRATIC, _is_quadratic),
     (EquationType.SIMPLIFICATION, _is_simplification),
     (EquationType.LINEAR, _is_linear),
+    (EquationType.STATISTICS, _is_statistics),
     (EquationType.EXPRESSION, _is_simple_expression),
 )

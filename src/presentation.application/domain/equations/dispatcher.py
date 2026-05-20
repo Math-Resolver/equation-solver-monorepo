@@ -10,6 +10,7 @@ from domain.equations.strategies.models.models_solver import SolveResult
 from domain.equations.strategies.quadratic_solver import QuadraticSolverStrategy
 from domain.equations.strategies.simplification_solver import SimplificationSolverStrategy
 from domain.equations.strategies.system_solver import SystemSolverStrategy
+from domain.equations.strategies.statistics_solver import StatisticsSolverStrategy
 
 
 SOLVER_STRATEGIES = {
@@ -22,6 +23,7 @@ SOLVER_STRATEGIES = {
     EquationType.FRACTION: FractionSolverStrategy(),
     EquationType.INEQUALITY: InequalitySolverStrategy(),
     EquationType.SIMPLIFICATION: SimplificationSolverStrategy(),
+    EquationType.STATISTICS: StatisticsSolverStrategy(),
 }
 
 MULTI_EQUATION_TYPES = {EquationType.SYSTEM}

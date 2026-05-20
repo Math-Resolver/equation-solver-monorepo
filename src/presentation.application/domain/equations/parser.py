@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import re
 
 
 class ParsedEquation:
@@ -13,6 +14,9 @@ def parse_equation_input(raw: str) -> tuple[ParsedEquation | None, str | None]:
     text_error = _run_validators(normalized, (_validate_not_empty,))
     if text_error is not None:
         return None, text_error
+
+    if _is_statistics_request(normalized):
+        return ParsedEquation(raw=normalized, equations=[normalized]), None
 
     equations = _split_and_normalize_equations(normalized)
 
@@ -61,6 +65,16 @@ def _is_valid_mathematical_expression(expression: str) -> bool:
     has_function = any(func in normalized.lower() for func in ["fator(", "factorize(", "raiz(", "sqrt("])
     
     return has_numbers and (has_operators_or_equals or has_function)
+
+
+def _is_statistics_request(expression: str) -> bool:
+    return bool(
+        re.match(
+            r"^(media|média|mediana|moda|combina|combinação|combinacao|ncr)\s*:",
+            expression,
+            flags=re.IGNORECASE,
+        )
+    )
 
 
 def _run_validators[

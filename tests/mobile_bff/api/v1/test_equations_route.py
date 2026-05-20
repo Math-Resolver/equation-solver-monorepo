@@ -116,6 +116,18 @@ class SolveEquationRouteTests(unittest.TestCase):
         self.assertIn("Domínio:", body["result"])
         self.assertEqual(body["steps"], [])
 
+    def test_solves_statistics_mean(self) -> None:
+        response = self.client.post(
+            "/v1/equation/solve",
+            json={"equation": "media: 1, 2, 3, 4", "showSteps": False},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        body = response.json()
+        self.assertEqual(body["result"], "2.5")
+        self.assertEqual(body["steps"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

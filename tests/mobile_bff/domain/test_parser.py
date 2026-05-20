@@ -24,6 +24,12 @@ class ParseEquationInputTests(unittest.TestCase):
         self.assertIsNone(err)
         self.assertEqual(parsed.equations, ["2 + 2"])
 
+    def test_accepts_statistics_request_as_single_payload(self) -> None:
+        parsed, err = parse_equation_input("media: 1, 2, 3")
+
+        self.assertIsNone(err)
+        self.assertEqual(parsed.equations, ["media: 1, 2, 3"])
+
     def test_rejects_empty_input(self) -> None:
         parsed, err = parse_equation_input("   ")
         self.assertIsNone(parsed)

@@ -32,6 +32,11 @@ class DetectEquationTypeTests(unittest.TestCase):
 
         self.assertEqual(detect_equation_type(parsed), EquationType.EXPRESSION)
 
+    def test_detects_statistics(self) -> None:
+        parsed = ParsedEquation(raw="media: 1, 2, 3", equations=["media: 1, 2, 3"])
+
+        self.assertEqual(detect_equation_type(parsed), EquationType.STATISTICS)
+
 
 if __name__ == "__main__":
     unittest.main()
