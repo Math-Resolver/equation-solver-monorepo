@@ -1,6 +1,7 @@
 from collections import Counter
 import math
 import re
+from abc import ABC, abstractmethod
 from statistics import mean, median
 
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
@@ -14,6 +15,91 @@ class StatisticsSolverStrategy(EquationSolverStrategy):
         return solve_statistics(equation, show_steps)
 
 
+class _StatisticsOperationStrategy(ABC):
+    @abstractmethod
+    def solve(self, expression: str, values: list[float], show_steps: bool) -> SolveResult:
+        raise NotImplementedError
+
+
+class _MeanStatisticsStrategy(_StatisticsOperationStrategy):
+    def solve(self, expression: str, values: list[float], show_steps: bool) -> SolveResult:
+        result_value = mean(values)
+        result_text = _format_number(result_value)
+
+        if not show_steps:
+            return SolveResult(result=result_text, steps=[])
+
+        steps = [
+            StepResult(
+                rule="Soma os valores e divide pela quantidade",
+                before=expression,
+                after=f"{_format_number(sum(values))} / {len(values)} = {result_text}",
+            )
+        ]
+        return SolveResult(result=result_text, steps=steps)
+
+
+class _MedianStatisticsStrategy(_StatisticsOperationStrategy):
+    def solve(self, expression: str, values: list[float], show_steps: bool) -> SolveResult:
+        ordered_values = sorted(values)
+        result_value = median(ordered_values)
+        result_text = _format_number(result_value)
+
+        if not show_steps:
+            return SolveResult(result=result_text, steps=[])
+
+        steps = [
+            StepResult(
+                rule="Ordena os valores e escolhe o elemento central",
+                before=expression,
+                after=f"{_format_sequence(ordered_values)} -> {result_text}",
+            )
+        ]
+        return SolveResult(result=result_text, steps=steps)
+
+
+class _ModeStatisticsStrategy(_StatisticsOperationStrategy):
+    def solve(self, expression: str, values: list[float], show_steps: bool) -> SolveResult:
+        counts = Counter(values)
+        highest_frequency = max(counts.values())
+        modes = [value for value, frequency in counts.items() if frequency == highest_frequency]
+        result_text = _format_modes(modes)
+
+        if not show_steps:
+            return SolveResult(result=result_text, steps=[])
+
+        steps = [
+            StepResult(
+                rule="Conta a frequência de cada valor",
+                before=expression,
+                after=f"{_format_frequency_map(counts)} -> {result_text}",
+            )
+        ]
+        return SolveResult(result=result_text, steps=steps)
+
+
+class _CombinationStatisticsStrategy(_StatisticsOperationStrategy):
+    def solve(self, expression: str, values: list[float], show_steps: bool) -> SolveResult:
+        validation_error = _validate_combination_values(values)
+        if validation_error is not None:
+            return SolveResult(result="", steps=[], error=validation_error)
+
+        n, k = (int(values[0]), int(values[1]))
+        result_text = str(math.comb(n, k))
+
+        if not show_steps:
+            return SolveResult(result=result_text, steps=[])
+
+        steps = [
+            StepResult(
+                rule="Aplica a fórmula de combinação",
+                before=expression,
+                after=f"C({n}, {k}) = {result_text}",
+            )
+        ]
+        return SolveResult(result=result_text, steps=steps)
+
+
 def solve_statistics(expression: str, show_steps: bool) -> SolveResult:
     normalized = expression.strip()
     operation, payload = _parse_statistics_request(normalized)
@@ -22,17 +108,11 @@ def solve_statistics(expression: str, show_steps: bool) -> SolveResult:
         return SolveResult(result="", steps=[], error="Informe media:, mediana:, moda: ou combina:")
 
     values = _extract_numbers(payload)
-    if operation == "combination":
-        return _solve_combination(values, normalized, show_steps)
-
-    if not values:
+    if not values and operation != "combination":
         return SolveResult(result="", steps=[], error="Informe uma lista de números válida")
 
-    if operation == "mean":
-        return _solve_mean(values, normalized, show_steps)
-    if operation == "median":
-        return _solve_median(values, normalized, show_steps)
-    return _solve_mode(values, normalized, show_steps)
+    strategy = _STATISTICS_STRATEGIES[operation]
+    return strategy.solve(normalized, values, show_steps)
 
 
 def _parse_statistics_request(expression: str) -> tuple[str | None, str]:
@@ -57,88 +137,6 @@ def _extract_numbers(payload: str) -> list[float]:
     return [float(match.replace(",", ".")) for match in matches]
 
 
-def _solve_mean(values: list[float], expression: str, show_steps: bool) -> SolveResult:
-    result_value = mean(values)
-    result_text = _format_number(result_value)
-
-    if not show_steps:
-        return SolveResult(result=result_text, steps=[])
-
-    steps = [
-        StepResult(
-            rule="Soma os valores e divide pela quantidade",
-            before=expression,
-            after=f"{_format_number(sum(values))} / {len(values)} = {result_text}",
-        )
-    ]
-    return SolveResult(result=result_text, steps=steps)
-
-
-def _solve_median(values: list[float], expression: str, show_steps: bool) -> SolveResult:
-    ordered_values = sorted(values)
-    result_value = median(ordered_values)
-    result_text = _format_number(result_value)
-
-    if not show_steps:
-        return SolveResult(result=result_text, steps=[])
-
-    steps = [
-        StepResult(
-            rule="Ordena os valores e escolhe o elemento central",
-            before=expression,
-            after=f"{_format_sequence(ordered_values)} -> {result_text}",
-        )
-    ]
-    return SolveResult(result=result_text, steps=steps)
-
-
-def _solve_mode(values: list[float], expression: str, show_steps: bool) -> SolveResult:
-    counts = Counter(values)
-    highest_frequency = max(counts.values())
-    modes = [value for value, frequency in counts.items() if frequency == highest_frequency]
-    result_text = _format_modes(modes)
-
-    if not show_steps:
-        return SolveResult(result=result_text, steps=[])
-
-    steps = [
-        StepResult(
-            rule="Conta a frequência de cada valor",
-            before=expression,
-            after=f"{_format_frequency_map(counts)} -> {result_text}",
-        )
-    ]
-    return SolveResult(result=result_text, steps=steps)
-
-
-def _solve_combination(values: list[float], expression: str, show_steps: bool) -> SolveResult:
-    if len(values) != 2:
-        return SolveResult(result="", steps=[], error="Combinação exige exatamente dois números: n e k")
-
-    n_value, k_value = values
-    if not n_value.is_integer() or not k_value.is_integer():
-        return SolveResult(result="", steps=[], error="Combinação aceita apenas números inteiros")
-
-    n = int(n_value)
-    k = int(k_value)
-    if n < 0 or k < 0 or k > n:
-        return SolveResult(result="", steps=[], error="Combinação exige 0 <= k <= n")
-
-    result_text = str(math.comb(n, k))
-
-    if not show_steps:
-        return SolveResult(result=result_text, steps=[])
-
-    steps = [
-        StepResult(
-            rule="Aplica a fórmula de combinação",
-            before=expression,
-            after=f"C({n}, {k}) = {result_text}",
-        )
-    ]
-    return SolveResult(result=result_text, steps=steps)
-
-
 def _format_number(value: float) -> str:
     rounded = round(value, 10)
     if rounded.is_integer():
@@ -160,3 +158,27 @@ def _format_modes(values: list[float]) -> str:
 def _format_frequency_map(counts: Counter[float]) -> str:
     formatted_items = [f"{_format_number(value)}: {count}" for value, count in sorted(counts.items())]
     return ", ".join(formatted_items)
+
+
+def _validate_combination_values(values: list[float]) -> str | None:
+    if len(values) != 2:
+        return "Combinação exige exatamente dois números: n e k"
+
+    n_value, k_value = values
+    if not n_value.is_integer() or not k_value.is_integer():
+        return "Combinação aceita apenas números inteiros"
+
+    n = int(n_value)
+    k = int(k_value)
+    if n < 0 or k < 0 or k > n:
+        return "Combinação exige 0 <= k <= n"
+
+    return None
+
+
+_STATISTICS_STRATEGIES: dict[str, _StatisticsOperationStrategy] = {
+    "mean": _MeanStatisticsStrategy(),
+    "median": _MedianStatisticsStrategy(),
+    "mode": _ModeStatisticsStrategy(),
+    "combination": _CombinationStatisticsStrategy(),
+}
