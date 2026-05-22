@@ -70,7 +70,7 @@ def _is_valid_mathematical_expression(expression: str) -> bool:
 def _is_statistics_request(expression: str) -> bool:
     return bool(
         re.match(
-            r"^(media|média|mediana|moda|combina|combinação|combinacao|ncr)\s*:",
+            r"^(mean|median|mode|combination)\s*:",
             expression,
             flags=re.IGNORECASE,
         )

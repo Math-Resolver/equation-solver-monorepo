@@ -9,8 +9,6 @@ from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
 
 class StatisticsSolverStrategy(EquationSolverStrategy):
-    """Strategy for solving basic statistics requests."""
-
     def solve(self, equation: str, show_steps: bool) -> SolveResult:
         return solve_statistics(equation, show_steps)
 
@@ -90,12 +88,27 @@ class _CombinationStatisticsStrategy(_StatisticsOperationStrategy):
         if not show_steps:
             return SolveResult(result=result_text, steps=[])
 
+        numerator = math.factorial(n)
+        denominator_left = math.factorial(k)
+        denominator_right = math.factorial(n - k)
+        denominator = denominator_left * denominator_right
+
         steps = [
             StepResult(
                 rule="Aplica a fórmula de combinação",
                 before=expression,
-                after=f"C({n}, {k}) = {result_text}",
-            )
+                after="C(n, k) = n! / (k! * (n-k)!)",
+            ),
+            StepResult(
+                rule="Substitui os valores",
+                before=expression,
+                after=f"C({n}, {k}) = {n}! / ({k}! * ({n}-{k})!) = {numerator} / ({denominator_left} * {denominator_right})",
+            ),
+            StepResult(
+                rule="Calcula o resultado final",
+                before=expression,
+                after=f"C({n}, {k}) = {numerator} / {denominator} = {result_text}",
+            ),
         ]
         return SolveResult(result=result_text, steps=steps)
 
@@ -105,7 +118,7 @@ def solve_statistics(expression: str, show_steps: bool) -> SolveResult:
     operation, payload = _parse_statistics_request(normalized)
 
     if operation is None:
-        return SolveResult(result="", steps=[], error="Informe media:, mediana:, moda: ou combina:")
+        return SolveResult(result="", steps=[], error="Operação estatística desconhecida. Use mean, median, mode ou combination.")
 
     values = _extract_numbers(payload)
     if not values and operation != "combination":
@@ -118,10 +131,10 @@ def solve_statistics(expression: str, show_steps: bool) -> SolveResult:
 def _parse_statistics_request(expression: str) -> tuple[str | None, str]:
     lowered = expression.lower()
     prefixes = (
-        ("mean", ("media:", "média:")),
-        ("median", ("mediana:",)),
-        ("mode", ("moda:",)),
-        ("combination", ("combina:", "combinação:", "combinacao:", "ncr:")),
+        ("mean", ("mean:",)),
+        ("median", ("median:",)),
+        ("mode", ("mode:",)),
+        ("combination", ("combination:",)),
     )
 
     for operation, candidates in prefixes:
@@ -151,8 +164,8 @@ def _format_sequence(values: list[float]) -> str:
 def _format_modes(values: list[float]) -> str:
     formatted = [_format_number(value) for value in sorted(values)]
     if len(formatted) == 1:
-        return f"Moda: {formatted[0]}"
-    return f"Modas: {', '.join(formatted)}"
+        return f"Mode: {formatted[0]}"
+    return f"Modes: {', '.join(formatted)}"
 
 
 def _format_frequency_map(counts: Counter[float]) -> str:

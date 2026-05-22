@@ -95,13 +95,10 @@ def _is_statistics(equation: str) -> bool:
     return any(
         lowered.startswith(prefix)
         for prefix in (
-            "media:",
-            "média:",
-            "mediana:",
-            "moda:",
-            "combina:",
-            "combinação:",
-            "combinacao:",
+            "mean:",
+            "median:",
+            "mode:",
+            "combination:",
             "ncr:",
         )
     )
