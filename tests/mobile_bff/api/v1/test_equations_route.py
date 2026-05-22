@@ -123,7 +123,7 @@ class SolveEquationRouteTests(unittest.TestCase):
     def test_solves_statistics_mean(self) -> None:
         response = self.client.post(
             "/v1/equation/solve",
-            json={"equation": "media: 1, 2, 3, 4", "showSteps": False},
+            json={"equation": "mean: 1, 2, 3, 4", "showSteps": False},
         )
 
         self.assertEqual(response.status_code, 200)
