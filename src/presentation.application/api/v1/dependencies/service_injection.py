@@ -20,3 +20,10 @@ _AI_MODULE = load_module_from_path(
 
 AiAdapter = _AI_MODULE.AiAdapter
 get_ai_adapter = _AI_MODULE.get_ai_adapter
+
+_HISTORY_MODULE = load_module_from_path(
+    "infrastructure.data.history.equation_history_repository",
+    _ROOT_PATH / "infrastructure.data" / "history" / "equation_history_repository.py",
+)
+EquationHistory = _HISTORY_MODULE.EquationHistory
+EquationHistoryRepository = _HISTORY_MODULE.EquationHistoryRepository
