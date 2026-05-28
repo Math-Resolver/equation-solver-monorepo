@@ -1,21 +1,7 @@
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional, Protocol
+from domain.equations.history.entities import EquationHistory
 
 logger = logging.getLogger(__name__)
-
-@dataclass
-class EquationHistory:
-    username: str
-    equation: str
-    result: str
-    steps: list[dict]
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    id: Optional[str] = None
-
-class IEquationHistoryRepository(Protocol):
-    async def save(self, entity: EquationHistory) -> None: ...
 
 class EquationHistoryRepository:
     def __init__(self, collection):
@@ -26,4 +12,10 @@ class EquationHistoryRepository:
             filter={"username": entity.username, "equation": entity.equation, "createdAt": entity.created_at},
             update={"$set": {"result": entity.result, "steps": entity.steps}},
             upsert=True,
-        )
+        )   
+        
+def get_history_repository(collection=None):
+    if collection is None:
+        return None
+    return EquationHistoryRepository(collection=collection)
+        

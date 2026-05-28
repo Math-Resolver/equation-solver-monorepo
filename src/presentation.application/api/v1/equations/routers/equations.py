@@ -7,7 +7,7 @@ from domain.equations.dispatcher import dispatch_solver, is_supported_equation_t
 from domain.equations.equation_type_detector import EquationType
 import api.v1.routers.equations as compat_routers_equations
 from domain.equations.parser import parse_equation_input
-from api.v1.dependencies.service_injection import EquationHistory, EquationHistoryRepository
+from api.v1.dependencies.service_injection import EquationHistory, get_history_repository
 router = APIRouter(prefix="/v1/equation", tags=["equation"])
 
 
@@ -77,9 +77,11 @@ async def solve_equation(
             result=result.result,
             steps=[step.model_dump() for step in response_steps],
         )
-        background_tasks.add_task(
-            EquationHistoryRepository(collection=None).save,
-            entity,
-        )
-
+        repository = get_history_repository()
+        if repository:
+             background_tasks.add_task(
+                repository.save,
+                entity,
+            )
+    
     return SolveEquationResponse(result=result.result, steps=response_steps)

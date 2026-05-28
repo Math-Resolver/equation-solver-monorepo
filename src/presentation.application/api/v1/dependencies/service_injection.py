@@ -25,5 +25,12 @@ _HISTORY_MODULE = load_module_from_path(
     "infrastructure.data.history.equation_history_repository",
     _ROOT_PATH / "infrastructure.data" / "history" / "equation_history_repository.py",
 )
-EquationHistory = _HISTORY_MODULE.EquationHistory
+
+_HISTORY_ENTITIES_MODULE = load_module_from_path(
+    "domain.equations.history.entities",
+    _ROOT_PATH / "domain" / "equations" / "history" / "entities.py",
+)
+EquationHistory = _HISTORY_ENTITIES_MODULE.EquationHistory
 EquationHistoryRepository = _HISTORY_MODULE.EquationHistoryRepository
+
+get_history_repository = _HISTORY_MODULE.get_history_repository
