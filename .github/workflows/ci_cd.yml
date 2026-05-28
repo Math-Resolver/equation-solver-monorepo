@@ -7,3 +7,42 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+
+  concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+  jobs:
+
+    versioning:
+        runs-on: ubuntu-latest
+        name: Versioning
+        permissions: 
+          contents: write
+
+        outputs: 
+          version: ${{ steps.version.outputs.version }}
+
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+            with:
+              ref: ${{ github.head_ref }}
+              fetch-detph: 0
+        
+          - uses: codacy/git-version@2.8.0
+            id: version
+            with:
+              release-branch: master
+              prefix: v
+
+          - name: Tag the repository
+            env: 
+              GH_TOKEN ${{ secrets.GITHUB_TOKEN }}
+            run: |
+              echo "::notice:: ${{ steps.version.outputs.version }}"
+              git config --global user.email $"{{ github.actor }}@users.noreplay.github.com"
+              git config --global user.email $"{{ github.actor }}@users.noreplay.github.com"
+
+    
