@@ -4,6 +4,10 @@ from domain.equations.strategies.expression_solver import ExpressionSolverStrate
 from domain.equations.strategies.factorization_solver import FactorizationSolverStrategy
 from domain.equations.strategies.fractions_solver import FractionSolverStrategy
 from domain.equations.strategies.function_analysis_solver import FunctionAnalysisSolverStrategy
+from domain.equations.strategies.calculus_solver import CalculusSolverStrategy
+from domain.equations.strategies.matrix_solver import MatrixSolverStrategy
+from domain.equations.strategies.trig_identity_solver import TrigIdentitySolverStrategy
+from domain.equations.strategies.geometry_solver import GeometrySolverStrategy
 from domain.equations.strategies.inequality_solver import InequalitySolverStrategy
 from domain.equations.strategies.linear_solver import LinearSolverStrategy
 from domain.equations.strategies.models.models_solver import SolveResult
@@ -20,6 +24,10 @@ SOLVER_STRATEGIES = {
     EquationType.EXPRESSION: ExpressionSolverStrategy(),
     EquationType.FACTORIZATION: FactorizationSolverStrategy(),
     EquationType.FUNCTION_ANALYSIS: FunctionAnalysisSolverStrategy(),
+    EquationType.CALCULUS: CalculusSolverStrategy(),
+    EquationType.MATRIX: MatrixSolverStrategy(),
+    EquationType.GEOMETRY: GeometrySolverStrategy(),
+    EquationType.PROVE: TrigIdentitySolverStrategy(),
     EquationType.FRACTION: FractionSolverStrategy(),
     EquationType.INEQUALITY: InequalitySolverStrategy(),
     EquationType.SIMPLIFICATION: SimplificationSolverStrategy(),

@@ -16,6 +16,10 @@ class EquationType(str, Enum):
     SIMPLIFICATION = "simplification"
     FUNCTION_ANALYSIS = "function_analysis"
     STATISTICS = "statistics"
+    CALCULUS = "calculus"
+    MATRIX = "matrix"
+    PROVE = "prove"
+    GEOMETRY = "geometry"
     UNKNOWN = "unknown"
 
 def _is_quadratic(equation: str) -> bool:
@@ -73,20 +77,40 @@ def _is_function_analysis(equation: str) -> bool:
         keyword in lowered
         for keyword in [
             "domain:",
-            "dominio:",
-            "domínio:",
             "extrema:",
             "maximum:",
             "minimum:",
             "intersect:",
-            "interseccao:",
-            "interseção:",
-            "intersecao:",
-            "interseção",
-            "dominio",
-            "domínio",
             "extremos",
         ]
+    )
+
+
+def _is_calculus(equation: str) -> bool:
+    lowered = equation.lower()
+    return any(lowered.startswith(p) for p in ("limit:", "integral:", "integrate:", "derivative:", "deriv:", "ode:"))
+
+
+def _is_matrix(equation: str) -> bool:
+    lowered = equation.lower()
+    return any(lowered.startswith(p) for p in ("matrix:", "determinant:", "det:", "inverse:", "inv:", "solve_matrix:"))
+
+
+def _is_prove(equation: str) -> bool:
+    lowered = equation.lower()
+    return any(lowered.startswith(p) for p in ("prove:", "identity:", "prove"))
+
+
+def _is_geometry(equation: str) -> bool:
+    lowered = equation.lower()
+    return any(
+        lowered.startswith(prefix)
+        for prefix in (
+            "area:",
+            "perimeter:",
+            "angulo:",
+            "triangle:",
+        )
     )
 
 
@@ -145,6 +169,10 @@ def detect_equation_type(parsed: ParsedEquation) -> EquationType:
 DETECTION_RULES: tuple[tuple[EquationType, Callable[[str], bool]], ...] = (
     (EquationType.FACTORIZATION, _is_factorization),
     (EquationType.FUNCTION_ANALYSIS, _is_function_analysis),
+    (EquationType.CALCULUS, _is_calculus),
+    (EquationType.MATRIX, _is_matrix),
+    (EquationType.PROVE, _is_prove),
+    (EquationType.GEOMETRY, _is_geometry),
     (EquationType.INEQUALITY, _is_inequality),
     (EquationType.FRACTION, _is_fraction),
     (EquationType.QUADRATIC, _is_quadratic),

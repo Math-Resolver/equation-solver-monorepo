@@ -9,15 +9,16 @@ class Step(BaseModel):
 
 class GraphPoint(BaseModel):
     x: float
-    y: float
+    y: float | None = None
 
 
 class SolveEquationGraph(BaseModel):
     kind: str
-    expression: str
-    coefficients: dict[str, float]
-    roots: list[str]
-    vertex: GraphPoint
+    expression: str | None = None
+    coefficients: dict[str, float] | None = None
+    roots: list[str] | None = None
+    vertex: GraphPoint | None = None
+    samplePoints: list[GraphPoint] | None = None
 
 
 class SolveEquationResponse(BaseModel):

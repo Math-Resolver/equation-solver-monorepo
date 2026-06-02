@@ -15,8 +15,16 @@ def parse_equation_input(raw: str) -> tuple[ParsedEquation | None, str | None]:
     if text_error is not None:
         return None, text_error
 
-    if _is_statistics_request(normalized):
-        return ParsedEquation(raw=normalized, equations=[normalized]), None
+    single_request_checks = (
+        _is_statistics_request,
+        _is_calculus_request,
+        _is_geometry_request,
+        _is_matrix_request,
+        _is_prove_request,
+    )
+    for check in single_request_checks:
+        if check(normalized):
+            return ParsedEquation(raw=normalized, equations=[normalized]), None
 
     equations = _split_and_normalize_equations(normalized)
 
@@ -70,11 +78,33 @@ def _is_valid_mathematical_expression(expression: str) -> bool:
 def _is_statistics_request(expression: str) -> bool:
     return bool(
         re.match(
-            r"^(mean|median|mode|combination)\s*:",
+            r"^(mean|media|median|mediana|mode|moda|combination|combinacao|ncr)\s*:",
             expression,
             flags=re.IGNORECASE,
         )
     )
+
+
+def _is_calculus_request(expression: str) -> bool:
+    return bool(
+        re.match(r"^(limit|integral|integrate|derivative|deriv|ode)\s*:", expression, flags=re.IGNORECASE)
+    )
+
+
+def _is_geometry_request(expression: str) -> bool:
+    return bool(
+        re.match(r"^(area|perimeter|angulo|triangle)\s*:", expression, flags=re.IGNORECASE)
+    )
+
+
+def _is_matrix_request(expression: str) -> bool:
+    return bool(
+        re.match(r"^(matrix|determinant|det|inverse|inv|solve_matrix)\s*:", expression, flags=re.IGNORECASE)
+    )
+
+
+def _is_prove_request(expression: str) -> bool:
+    return bool(re.match(r"^(prove|identity|prove:)", expression, flags=re.IGNORECASE))
 
 
 def _run_validators[

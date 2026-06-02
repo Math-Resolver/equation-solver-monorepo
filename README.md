@@ -7,6 +7,12 @@ python -m uvicorn main:app --reload
 
 Documentacao OpenAPI: `http://127.0.0.1:8000/docs`
 
+Para rodar todos os testes unitarios, execute o comando abaixo no diretorio `tests/mobile_bff/domain`:
+
+```bash
+python -m unittest discover -v
+```
+
 ## Endpoint de conversation
 
 `POST /v1/conversation`

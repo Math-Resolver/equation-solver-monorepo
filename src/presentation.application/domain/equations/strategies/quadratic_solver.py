@@ -5,16 +5,13 @@ from domain.equations.strategies.strategy_solver import EquationSolverStrategy
 
 
 class QuadraticSolverStrategy(EquationSolverStrategy):
-    """Strategy for solving quadratic equations."""
-
     def solve(self, equation: str, show_steps: bool) -> SolveResult:
         return solve_quadratic(equation, show_steps)
 
 
 def solve_quadratic(equation: str, show_steps: bool) -> SolveResult:
-    normalized = equation.replace(" ", "")
-    parsed, parse_error = _parse_quadratic_equation(normalized)
-    if parse_error is not None:
+    parsed, parse_error = _parse_quadratic_equation(equation.replace(" ", ""))
+    if parse_error:
         return SolveResult(result="", steps=[], error=parse_error)
 
     a, b, c = parsed
@@ -22,143 +19,94 @@ def solve_quadratic(equation: str, show_steps: bool) -> SolveResult:
         return SolveResult(result="", steps=[], error="Equação do segundo grau deve ter coeficiente a diferente de zero")
 
     delta = (b * b) - (4 * a * c)
-    sqrt_delta = cmath.sqrt(delta)
-    denominator = 2 * a
-
-    x1 = (-b + sqrt_delta) / denominator
-    x2 = (-b - sqrt_delta) / denominator
+    sqrt_delta, denominator = cmath.sqrt(delta), 2 * a
+    x1, x2 = (-b + sqrt_delta) / denominator, (-b - sqrt_delta) / denominator
+    
     result_text = f"x1 = {_format_number(x1)}, x2 = {_format_number(x2)}"
-    graph = _build_quadratic_graph(a=a, b=b, c=c, x1=x1, x2=x2)
-
-    if not show_steps:
-        return SolveResult(result=result_text, steps=[], graph=graph)
+    graph = _build_quadratic_graph(a, b, c, x1, x2)
 
     steps = [
-        StepResult(
-            rule="Identifica os coeficientes da equação",
-            before=equation,
-            after=f"a = {_format_number(a)}, b = {_format_number(b)}, c = {_format_number(c)}",
-        ),
-        StepResult(
-            rule="Calcula o discriminante",
-            before=f"Δ = b² - 4ac = {_format_number(b)}² - 4·{_format_number(a)}·{_format_number(c)}",
-            after=f"Δ = {_format_number(delta)}",
-        ),
-        StepResult(
-            rule="Aplica a fórmula de Bhaskara",
-            before="x = (-b ± √Δ) / 2a",
-            after=result_text,
-        ),
-    ]
+        StepResult(rule="Identifica os coeficientes da equação", before=equation, after=f"a = {_format_number(a)}, b = {_format_number(b)}, c = {_format_number(c)}"),
+        StepResult(rule="Calcula o discriminante", before=f"Δ = b² - 4ac = {_format_number(b)}² - 4·{_format_number(a)}·{_format_number(c)}", after=f"Δ = {_format_number(delta)}"),
+        StepResult(rule="Aplica a fórmula de Bhaskara", before="x = (-b ± √Δ) / 2a", after=result_text),
+    ] if show_steps else []
+
     return SolveResult(result=result_text, steps=steps, graph=graph)
 
 
 def _build_quadratic_graph(a: float, b: float, c: float, x1: complex, x2: complex) -> dict:
-    vertex_x = -b / (2 * a)
-    vertex_y = (a * vertex_x * vertex_x) + (b * vertex_x) + c
+    vx = -b / (2 * a)
+    real_roots = [float(r.real) for r in (x1, x2) if abs(r.imag) < 1e-12]
+    bounds = real_roots + [float(vx)]
+    
+    left_bound, right_bound = (min(bounds) - 2.0, max(bounds) + 2.0) if real_roots else (float(vx) - 2.5, float(vx) + 2.5)
+    span = right_bound - left_bound
+    xs = [left_bound + i * (span / 24) for i in range(25)]
 
     return {
         "kind": "quadratic",
-        "expression": f"f(x) = {_format_number(a)}x^2 + {_format_number(b)}x + {_format_number(c)}",
-        "coefficients": {
-            "a": float(a),
-            "b": float(b),
-            "c": float(c),
-        },
+        "expression": _format_quadratic_expression(a, b, c),
+        "coefficients": {"a": float(a), "b": float(b), "c": float(c)},
         "roots": [_format_number(x1), _format_number(x2)],
-        "vertex": {
-            "x": float(vertex_x),
-            "y": float(vertex_y),
-        },
+        "vertex": {"x": float(vx), "y": float((a * vx * vx) + (b * vx) + c)},
+        "samplePoints": [{"x": float(round(x, 3)), "y": float(round((a * x * x) + (b * x) + c, 3))} for x in xs],
     }
 
 
+def _format_quadratic_expression(a: float, b: float, c: float) -> str:
+    parts = []
+    for val, suffix in ((a, "x^2"), (b, "x"), (c, "")):
+        if abs(val) > 1e-12 or (not suffix and not parts):
+            parts.append(_format_signed_term(val, suffix, not parts))
+    return f"f(x) = {' '.join(parts)}"
+
+
+def _format_signed_term(value: float, suffix: str, first: bool) -> str:
+    mag = _format_number(abs(value))
+    term = suffix if suffix and mag == "1" else f"{mag}{suffix}"
+    return (term if value >= 0 else f"-{term}") if first else (f"+ {term}" if value >= 0 else f"- {term}")
+
+
 def _parse_quadratic_equation(equation: str) -> tuple[tuple[float, float, float] | None, str | None]:
-    if "=" not in equation:
+    parts = equation.split("=", 1)
+    if len(parts) != 2:
         return None, "Equação do segundo grau deve conter '='"
 
-    left, right = equation.split("=", 1)
-    left_side, left_error = _parse_quadratic_side(left)
-    if left_error is not None:
-        return None, left_error
-    right_side, right_error = _parse_quadratic_side(right)
-    if right_error is not None:
-        return None, right_error
-
-    left_a, left_b, left_c = left_side
-    right_a, right_b, right_c = right_side
-
-    return (left_a - right_a, left_b - right_b, left_c - right_c), None
+    l_side, l_err = _parse_quadratic_side(parts[0])
+    r_side, r_err = _parse_quadratic_side(parts[1])
+    
+    return ((l_side[0] - r_side[0], l_side[1] - r_side[1], l_side[2] - r_side[2]), None) if not (l_err or r_err) else (None, l_err or r_err)
 
 
 def _parse_quadratic_side(expression: str) -> tuple[tuple[float, float, float] | None, str | None]:
-    normalized = expression.replace("**", "^")
-
+    normalized = expression.replace("**", "^").replace("-", "+-").lstrip("+")
     if not normalized:
-        return 0.0, 0.0, 0.0
+        return (0.0, 0.0, 0.0), None
 
-    normalized = normalized.replace("-", "+-")
-    if normalized.startswith("+-"):
-        normalized = normalized[1:]
-
-    coefficients = {"quadratic": 0.0, "linear": 0.0, "constant": 0.0}
-
-    for term in (part for part in normalized.split("+") if part):
-        term_type = _classify_quadratic_term(term)
+    coeffs = {"x^2": 0.0, "x": 0.0, "c": 0.0}
+    for term in (p for p in normalized.split("+") if p):
+        kind = "x^2" if "x^2" in term else "x" if "x" in term else "c"
         
-        if term_type == "constant":
+        if kind == "c":
             if not _is_number(term):
                 return None, f"Formato inválido na expressão: '{expression}'"
-            coefficients["constant"] += float(term)
+            coeffs["c"] += float(term)
         else:
-            symbol = "x^2" if term_type == "quadratic" else "x"
-            coefficients[term_type] += _extract_coefficient(term, symbol)
+            prefix = term.split(kind, 1)[0].replace("*", "")
+            coeffs[kind] += -1.0 if prefix == "-" else 1.0 if prefix in ("", "+") else float(prefix)
 
-    return (coefficients["quadratic"], coefficients["linear"], coefficients["constant"]), None
-
-
-def _extract_coefficient(term: str, symbol: str) -> float:
-    prefix = term.split(symbol, 1)[0].replace("*", "")
-
-    if prefix in ("", "+"):
-        return 1.0
-    if prefix == "-":
-        return -1.0
-
-    return float(prefix)
+    return (coeffs["x^2"], coeffs["x"], coeffs["c"]), None
 
 
 def _format_number(value: complex | float) -> str:
     if isinstance(value, complex):
         if abs(value.imag) < 1e-12:
             return _format_number(value.real)
+        return f"{_format_number(value.real)} {'+' if value.imag >= 0 else '-'} {_format_number(abs(value.imag))}i"
 
-        real_part = _format_number(value.real)
-        imaginary_part = _format_number(abs(value.imag))
-        sign = "+" if value.imag >= 0 else "-"
-        return f"{real_part} {sign} {imaginary_part}i"
-
-    if isinstance(value, float):
-        rounded = round(value, 10)
-        if rounded.is_integer():
-            return str(int(rounded))
-        return (f"{rounded:.10f}").rstrip("0").rstrip(".")
-
-    return str(value)
+    rounded = round(float(value), 10)
+    return str(int(rounded)) if rounded.is_integer() else f"{rounded:.10f}".rstrip("0").rstrip(".")
 
 
 def _is_number(text: str) -> bool:
-    stripped = text.strip()
-    if not stripped:
-        return False
-    if stripped[0] in "+-":
-        stripped = stripped[1:]
-    return stripped.replace(".", "", 1).isdigit()
-
-
-def _classify_quadratic_term(term: str) -> str:
-    if "x^2" in term:
-        return "quadratic"
-    if "x" in term:
-        return "linear"
-    return "constant"
+    return bool(text) and text.strip().lstrip("+-").replace(".", "", 1).isdigit()
