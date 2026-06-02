@@ -28,9 +28,10 @@ def solve_quadratic(equation: str, show_steps: bool) -> SolveResult:
     x1 = (-b + sqrt_delta) / denominator
     x2 = (-b - sqrt_delta) / denominator
     result_text = f"x1 = {_format_number(x1)}, x2 = {_format_number(x2)}"
+    graph = _build_quadratic_graph(a=a, b=b, c=c, x1=x1, x2=x2)
 
     if not show_steps:
-        return SolveResult(result=result_text, steps=[])
+        return SolveResult(result=result_text, steps=[], graph=graph)
 
     steps = [
         StepResult(
@@ -49,7 +50,27 @@ def solve_quadratic(equation: str, show_steps: bool) -> SolveResult:
             after=result_text,
         ),
     ]
-    return SolveResult(result=result_text, steps=steps)
+    return SolveResult(result=result_text, steps=steps, graph=graph)
+
+
+def _build_quadratic_graph(a: float, b: float, c: float, x1: complex, x2: complex) -> dict:
+    vertex_x = -b / (2 * a)
+    vertex_y = (a * vertex_x * vertex_x) + (b * vertex_x) + c
+
+    return {
+        "kind": "quadratic",
+        "expression": f"f(x) = {_format_number(a)}x^2 + {_format_number(b)}x + {_format_number(c)}",
+        "coefficients": {
+            "a": float(a),
+            "b": float(b),
+            "c": float(c),
+        },
+        "roots": [_format_number(x1), _format_number(x2)],
+        "vertex": {
+            "x": float(vertex_x),
+            "y": float(vertex_y),
+        },
+    }
 
 
 def _parse_quadratic_equation(equation: str) -> tuple[tuple[float, float, float] | None, str | None]:

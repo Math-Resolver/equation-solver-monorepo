@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks, Request, status
+from fastapi import APIRouter, BackgroundTasks, Request, Response, status
 from fastapi.responses import JSONResponse
 
 from api.v1.conversation.schemas.solve_equation_request import SolveEquationRequest
@@ -36,6 +36,7 @@ def _extract_username_from_dev_token(token: str) -> str | None:
 async def solve_equation(
     payload: SolveEquationRequest,
     request: Request,
+    response: Response,
     background_tasks: BackgroundTasks,
 ) -> SolveEquationResponse:
     parsed, parse_error = parse_equation_input(payload.equation)
@@ -80,4 +81,5 @@ async def solve_equation(
             steps=[step.model_dump() for step in response_steps],
         )
 
-    return SolveEquationResponse(result=result.result, steps=response_steps)
+    response.headers["x-preserve-nulls"] = "true"
+    return SolveEquationResponse(result=result.result, steps=response_steps, graph=result.graph)

@@ -7,6 +7,20 @@ class Step(BaseModel):
     after: str
 
 
+class GraphPoint(BaseModel):
+    x: float
+    y: float
+
+
+class SolveEquationGraph(BaseModel):
+    kind: str
+    expression: str
+    coefficients: dict[str, float]
+    roots: list[str]
+    vertex: GraphPoint
+
+
 class SolveEquationResponse(BaseModel):
     result: str
     steps: list[Step]
+    graph: SolveEquationGraph | None = None

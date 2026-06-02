@@ -14,3 +14,4 @@ class SolveResult:
     result: str
     steps: list[StepResult]
     error: Optional[str] = None
+    graph: Optional[dict] = None

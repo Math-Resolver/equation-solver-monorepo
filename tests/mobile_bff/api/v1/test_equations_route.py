@@ -35,6 +35,8 @@ class SolveEquationRouteTests(unittest.TestCase):
         self.assertEqual(body["steps"][0]["before"], "2+2*5")
         self.assertEqual(body["steps"][0]["after"], "2+10")
         self.assertEqual(body["steps"][1]["after"], "12")
+        self.assertIn("graph", body)
+        self.assertIsNone(body["graph"])
 
     def test_solves_quadratic_equation(self) -> None:
         response = self.client.post(
@@ -47,6 +49,9 @@ class SolveEquationRouteTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["result"], "x1 = 3, x2 = 2")
         self.assertEqual(len(body["steps"]), 3)
+        self.assertIsNotNone(body["graph"])
+        self.assertEqual(body["graph"]["kind"], "quadratic")
+        self.assertEqual(body["graph"]["coefficients"], {"a": 1.0, "b": -5.0, "c": 6.0})
 
     def test_solves_system_of_equations(self) -> None:
         response = self.client.post(
@@ -59,6 +64,8 @@ class SolveEquationRouteTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["result"], "x = 3, y = 2")
         self.assertEqual(body["steps"], [])
+        self.assertIn("graph", body)
+        self.assertIsNone(body["graph"])
 
     def test_rejects_empty_equation(self) -> None:
         response = self.client.post(
