@@ -27,10 +27,10 @@ _HISTORY_MODULE = load_module_from_path(
 )
 
 _HISTORY_ENTITIES_MODULE = load_module_from_path(
-    "domain.equations.history.entities",
-    _ROOT_PATH / "domain" / "equations" / "history" / "entities.py",
+    "domain.equations.history.entities.equation_history_entity",
+    _ROOT_PATH / "domain" / "equations" / "history" / "entities" / "equation_history_entity.py"
 )
-EquationHistory = _HISTORY_ENTITIES_MODULE.EquationHistory
+EquationHistoryEntity = _HISTORY_ENTITIES_MODULE.EquationHistoryEntity
 EquationHistoryRepository = _HISTORY_MODULE.EquationHistoryRepository
 
 get_history_repository = _HISTORY_MODULE.get_history_repository

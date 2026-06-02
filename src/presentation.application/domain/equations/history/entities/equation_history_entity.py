@@ -4,7 +4,7 @@ from typing import Optional
 
 
 @dataclass
-class EquationHistory:
+class EquationHistoryEntity:
     username: str
     equation: str
     result: str
