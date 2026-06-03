@@ -22,6 +22,10 @@ class CalculusSolverStrategy(EquationSolverStrategy):
 
 
 def _safe_parse(expr_text: str):
+    expr_text = expr_text.strip()
+    if not re.fullmatch(r"[0-9A-Za-z+\-*/^().,\s]+", expr_text):
+        raise ValueError("Expressão contém caracteres inválidos")
+
     transformations = standard_transformations + (convert_xor, implicit_multiplication_application)
     return parse_expr_fn(expr_text.replace("^", "**"), transformations=transformations, local_dict={"x": X})
 
