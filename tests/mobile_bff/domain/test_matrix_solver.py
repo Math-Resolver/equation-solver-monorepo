@@ -1,5 +1,3 @@
-import pytest
-
 from domain.equations.strategies.matrix_solver import solve_matrix
 
 
