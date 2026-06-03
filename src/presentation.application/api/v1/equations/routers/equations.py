@@ -38,6 +38,7 @@ async def solve_equation(
     response: Response,
     background_tasks: BackgroundTasks,
 ) -> SolveEquationResponse:
+    response.headers["x-preserve-nulls"] = "true"
     parsed, parse_error = parse_equation_input(payload.equation)
     if parse_error is not None:
         return JSONResponse(
