@@ -100,4 +100,7 @@ def solve_calculus(equation: str, show_steps: bool) -> SolveResult:
     if handler is None:
         return SolveResult(result="", steps=[], error="Tipo de cálculo não reconhecido")
 
-    return handler(equation, payload, show_steps)
+    try:
+        return handler(equation, payload, show_steps)
+    except Exception as exc:
+        return SolveResult(result="", steps=[], error=f"Erro ao interpretar expressão: {exc}")
