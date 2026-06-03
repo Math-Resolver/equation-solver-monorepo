@@ -1,8 +1,6 @@
-from dataclasses import dataclass
-from typing import Optional
-
-from sympy import Symbol, parse_expr, limit as sym_limit, integrate as sym_integrate, diff as sym_diff, dsolve, Function, Eq, Derivative
 import re
+
+from sympy import Eq, Function, Symbol, diff as sym_diff, dsolve, integrate as sym_integrate, limit as sym_limit
 from sympy.parsing.sympy_parser import (
     convert_xor,
     implicit_multiplication_application,
