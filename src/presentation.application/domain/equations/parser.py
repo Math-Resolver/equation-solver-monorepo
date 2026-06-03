@@ -104,7 +104,7 @@ def _is_matrix_request(expression: str) -> bool:
 
 
 def _is_prove_request(expression: str) -> bool:
-    return bool(re.match(r"^(prove|identity|prove:)", expression, flags=re.IGNORECASE))
+    return bool(re.match(r"^(prove|identity)\s*:", expression, flags=re.IGNORECASE))
 
 
 def _run_validators[
