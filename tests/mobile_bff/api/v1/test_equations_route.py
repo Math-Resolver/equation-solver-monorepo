@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 
 APP_ROOT = Path(__file__).resolve().parents[1]
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 REPO_SRC = REPO_ROOT / "src" / "presentation.application"
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
