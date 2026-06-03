@@ -98,7 +98,7 @@ def _is_matrix(equation: str) -> bool:
 
 def _is_prove(equation: str) -> bool:
     lowered = equation.lower()
-    return any(lowered.startswith(p) for p in ("prove:", "identity:", "prove"))
+    return any(lowered.startswith(p) for p in ("prove:", "identity:"))
 
 
 def _is_geometry(equation: str) -> bool:
