@@ -22,10 +22,6 @@ class CalculusSolverStrategy(EquationSolverStrategy):
         return solve_calculus(equation, show_steps)
 
 
-def _parse_payload(payload: str):
-    parts = payload.split("", 1)
-    return payload.strip()
-
 
 def _safe_parse(expr_text: str):
     transformations = standard_transformations + (convert_xor, implicit_multiplication_application)
