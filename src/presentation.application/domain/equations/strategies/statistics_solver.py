@@ -131,10 +131,10 @@ def solve_statistics(expression: str, show_steps: bool) -> SolveResult:
 def _parse_statistics_request(expression: str) -> tuple[str | None, str]:
     lowered = expression.lower()
     prefixes = (
-        ("mean", ("mean:",)),
-        ("median", ("median:",)),
-        ("mode", ("mode:",)),
-        ("combination", ("combination:",)),
+        ("mean", ("mean:", "media:")),
+        ("median", ("median:", "mediana:")),
+        ("mode", ("mode:", "moda:")),
+        ("combination", ("combination:", "combinacao:", "ncr:")),
     )
 
     for operation, candidates in prefixes:
