@@ -93,7 +93,7 @@ def _is_calculus_request(expression: str) -> bool:
 
 def _is_geometry_request(expression: str) -> bool:
     return bool(
-        re.match(r"^(area|perimeter|angulo|triangle)\s*:", expression, flags=re.IGNORECASE)
+        re.match(r"^(area|perimeter)\s*:", expression, flags=re.IGNORECASE)
     )
 
 

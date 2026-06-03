@@ -108,8 +108,6 @@ def _is_geometry(equation: str) -> bool:
         for prefix in (
             "area:",
             "perimeter:",
-            "angulo:",
-            "triangle:",
         )
     )
 
