@@ -7,11 +7,9 @@ python -m uvicorn main:app --reload
 
 Documentacao OpenAPI: `http://127.0.0.1:8000/docs`
 
-Para rodar todos os testes unitarios, execute o comando abaixo no diretorio `tests/mobile_bff/domain`:
+Para rodar todos os testes, execute o comando abaixo no diretório raiz do repositório:
 
-```bash
-python -m unittest discover -v
-```
+pytest -q
 
 ## Endpoint de conversation
 
