@@ -48,16 +48,16 @@ def _solve_system(eq: str, payload: str, show: bool) -> SolveResult:
     b_temp = _parse_matrix_payload(parts[1]) if ";" in parts[1] else None
     nums = [float(x) for x in re.findall(r"-?\d+(?:\.\d+)?", parts[1])] if not b_temp else []
     
-    bvec = (b_temp if b_temp and b_temp.cols == 1 else 
-            b_temp.T if b_temp and b_temp.rows == 1 else 
+    bvec = (b_temp if b_temp is not None and b_temp.cols == 1 else 
+            b_temp.T if b_temp is not None and b_temp.rows == 1 else 
             Matrix([[n] for n in nums]) if nums else None)
 
     rules = [
-        (not a_mat, "Matriz A inválida"),
-        (not bvec, "Matriz B inválida"),
-        (a_mat and bvec and a_mat.rows != bvec.rows, "Dimensões incompatíveis entre A e b"),
-        (a_mat and a_mat.rows != a_mat.cols, "Matriz A não quadrada"),
-        (a_mat and a_mat.rows == a_mat.cols and a_mat.det() == 0, "Matriz A singular"),
+        (a_mat is None, "Matriz A inválida"),
+        (bvec is None, "Matriz B inválida"),
+        (a_mat is not None and bvec is not None and a_mat.rows != bvec.rows, "Dimensões incompatíveis entre A e b"),
+        (a_mat is not None and a_mat.rows != a_mat.cols, "Matriz A não quadrada"),
+        (a_mat is not None and a_mat.rows == a_mat.cols and a_mat.det() == 0, "Matriz A singular"),
     ]
     error_msg = next((msg for cond, msg in rules if cond), None)
     if error_msg:
@@ -69,13 +69,13 @@ def _solve_system(eq: str, payload: str, show: bool) -> SolveResult:
 
 def _det(eq: str, payload: str, show: bool) -> SolveResult:
     m = _parse_matrix_payload(payload)
-    err = "Matriz inválida" if not m else "Matriz não quadrada" if m.rows != m.cols else None
+    err = "Matriz inválida" if m is None else "Matriz não quadrada" if m.rows != m.cols else None
     return _error(err) if err else _build_result(str(m.det()), "Calcula determinante", eq, show)
 
 
 def _inv(eq: str, payload: str, show: bool) -> SolveResult:
     m = _parse_matrix_payload(payload)
-    err = ("Matriz inválida" if not m else 
+    err = ("Matriz inválida" if m is None else 
            "Matriz não quadrada" if m.rows != m.cols else 
            "Matriz singular (não possui inversa)" if m.det() == 0 else None)
     return _error(err) if err else _build_result(str(m.inv()), "Calcula inversa", eq, show)
@@ -83,4 +83,4 @@ def _inv(eq: str, payload: str, show: bool) -> SolveResult:
 
 def _mat(eq: str, payload: str, show: bool) -> SolveResult:
     m = _parse_matrix_payload(payload)
-    return _build_result(str(m), "Retorna matriz", eq, show) if m else _error("Matriz inválida")
+    return _build_result(str(m), "Retorna matriz", eq, show) if m is not None else _error("Matriz inválida")

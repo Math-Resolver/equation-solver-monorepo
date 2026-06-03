@@ -211,7 +211,7 @@ def _collect_graph_candidates(parsed_expr) -> list[float]:
     candidates.extend(_extract_numeric_points(solveset(Eq(parsed_expr, 0), X, domain=S.Reals)))
     candidates.extend(_extract_numeric_points(solveset(Eq(diff(parsed_expr, X), 0), X, domain=S.Reals)))
 
-    if (y0 := _to_float(parsed_expr.subs(X, 0))) is not None:
+    if _to_float(parsed_expr.subs(X, 0)) is not None:
         candidates.append(0.0)
 
     return candidates
