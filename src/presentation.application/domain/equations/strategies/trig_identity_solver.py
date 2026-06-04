@@ -1,10 +1,12 @@
+import re
+
 from sympy.parsing.sympy_parser import (
     convert_xor,
     implicit_multiplication_application,
     parse_expr,
     standard_transformations,
 )
-from sympy import simplify, trigsimp
+from sympy import Symbol, cos, pi, simplify, sin, tan, trigsimp
 
 from domain.equations.strategies.models.models_solver import SolveResult, StepResult
 from domain.equations.strategies.strategy_solver import EquationSolverStrategy
@@ -15,9 +17,17 @@ class TrigIdentitySolverStrategy(EquationSolverStrategy):
         return solve_prove(equation, show_steps)
 
 
+X = Symbol("x", real=True)
+LOCAL_DICT = {"x": X, "sin": sin, "cos": cos, "tan": tan, "pi": pi}
+
+
 def _safe_parse(expr_text: str):
+    expr_text = expr_text.strip()
+    if not re.fullmatch(r"[0-9A-Za-z+\-*/^().,\s]+", expr_text):
+        raise ValueError("Expressão contém caracteres inválidos")
+
     transformations = standard_transformations + (convert_xor, implicit_multiplication_application)
-    return parse_expr(expr_text.replace("^", "**"), transformations=transformations)
+    return parse_expr(expr_text.replace("^", "**"), transformations=transformations, local_dict=LOCAL_DICT)
 
 
 def solve_prove(equation: str, show_steps: bool) -> SolveResult:
