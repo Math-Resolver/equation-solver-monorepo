@@ -23,7 +23,7 @@ LOCAL_DICT = {"x": X, "sin": sin, "cos": cos, "tan": tan, "pi": pi}
 
 def _safe_parse(expr_text: str):
     expr_text = expr_text.strip()
-    if not re.fullmatch(r"[0-9A-Za-z+\-*/^().,\s]+", expr_text):
+    if not re.fullmatch(r"[0-9A-Za-z+\-*/^().\s]+", expr_text):
         raise ValueError("Expressão contém caracteres inválidos")
 
     transformations = standard_transformations + (convert_xor, implicit_multiplication_application)
