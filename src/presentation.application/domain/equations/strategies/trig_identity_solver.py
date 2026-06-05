@@ -19,15 +19,27 @@ class TrigIdentitySolverStrategy(EquationSolverStrategy):
 
 X = Symbol("x", real=True)
 LOCAL_DICT = {"x": X, "sin": sin, "cos": cos, "tan": tan, "pi": pi}
+ALLOWED_IDENTIFIERS = {"x", "pi", "sin", "cos", "tan"}
 
 
 def _safe_parse(expr_text: str):
     expr_text = expr_text.strip()
     if not re.fullmatch(r"[0-9A-Za-z+\-*/^().\s]+", expr_text):
         raise ValueError("Expressão contém caracteres inválidos")
+    if expr_text.count("(") != expr_text.count(")"):
+        raise ValueError("Parênteses desbalanceados")
+
+    identifiers = re.findall(r"[A-Za-z]+", expr_text)
+    if any(identifier not in ALLOWED_IDENTIFIERS for identifier in identifiers):
+        raise ValueError("Expressão contém identificadores não permitidos")
 
     transformations = standard_transformations + (convert_xor, implicit_multiplication_application)
-    return parse_expr(expr_text.replace("^", "**"), transformations=transformations, local_dict=LOCAL_DICT)
+    return parse_expr(
+        expr_text.replace("^", "**"),
+        transformations=transformations,
+        local_dict=LOCAL_DICT,
+        global_dict={"__builtins__": {}},
+    )
 
 
 def solve_prove(equation: str, show_steps: bool) -> SolveResult:
