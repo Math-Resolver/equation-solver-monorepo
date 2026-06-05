@@ -86,4 +86,4 @@ async def solve_equation(
                 entity,
             )
     
-    return SolveEquationResponse(result=result.result, steps=response_steps)
+    return SolveEquationResponse(result=result.result, steps=response_steps, graph=result.graph)
