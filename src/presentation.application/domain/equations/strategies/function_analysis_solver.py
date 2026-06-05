@@ -213,7 +213,6 @@ def _collect_graph_candidates(parsed_expr) -> list[float]:
 
     if _to_float(parsed_expr.subs(X, 0)) is not None:
         candidates.append(0.0)
-
     return candidates
 
 
