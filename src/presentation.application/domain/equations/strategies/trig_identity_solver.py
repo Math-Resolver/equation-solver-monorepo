@@ -37,10 +37,14 @@ def solve_prove(equation: str, show_steps: bool) -> SolveResult:
     if "=" not in payload:
         return SolveResult(result="", steps=[], error="Formato inválido. Use 'expr1 = expr2'")
     left_text, right_text = payload.split("=", 1)
-    left = _safe_parse(left_text)
-    right = _safe_parse(right_text)
-    diff = simplify(left - right)
-    trig = trigsimp(diff)
+    try:
+        left = _safe_parse(left_text)
+        right = _safe_parse(right_text)
+        diff = simplify(left - right)
+        trig = trigsimp(diff)
+    except Exception as exc:
+        return SolveResult(result="", steps=[], error=f"Expressão inválida: {exc}")
+
     equivalent = (trig == 0)
     result_text = "Equivalent" if equivalent else f"Not equivalent: {trig}"
     steps = [StepResult(rule="Simplifica diferença", before=payload.strip(), after=str(trig))]
