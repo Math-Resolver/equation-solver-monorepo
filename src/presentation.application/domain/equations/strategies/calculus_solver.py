@@ -17,8 +17,14 @@ X = Symbol("x")
 
 class CalculusSolverStrategy(EquationSolverStrategy):
     def solve(self, equation: str, show_steps: bool) -> SolveResult:
-        return solve_calculus(equation, show_steps)
-
+        try:
+            return solve_calculus(equation, show_steps)
+        except Exception as exc:
+            return SolveResult(
+                result="", 
+                steps=[], 
+                error=f"Erro inesperado ao processar cálculo: {exc}"
+            )
 
 
 def _safe_parse(expr_text: str):
