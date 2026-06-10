@@ -5,7 +5,7 @@ pip install -r ../../requirements.txt
 python -m uvicorn main:app --reload
 ```
 
-Documentacao OpenAPI: `http://127.0.0.1:8000/docs`
+Documentacao OpenAPI(rodar localmente): `http://127.0.0.1:8000/docs`
 
 ## Endpoint de conversation
 
@@ -42,3 +42,16 @@ Variaveis de ambiente:
 - `GEMINI_API_KEY`: chave da Gemini Developer API
 - `GEMINI_MODEL`: modelo Gemini. Default: `gemini-2.0-flash`
 - `GEMINI_TIMEOUT_SECONDS`: timeout da chamada ao Gemini. Default: `10`
+
+
+Rodando o projeto via docker compose:
+- É necessário instalar e rodar Docker Desktop
+- Execute o comando na raiz do projeto, em `docker-compose.yml`
+- Usar o comando no terminal:
+```bash
+docker compose up
+```
+- Documentação OpenAPI(via docker): `http://localhost:8000/docs`
+
+
+
