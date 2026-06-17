@@ -7,6 +7,10 @@ python -m uvicorn main:app --reload
 
 Documentacao OpenAPI(rodar localmente): `http://127.0.0.1:8000/docs`
 
+Para rodar todos os testes, execute o comando abaixo no diretório raiz do repositório:
+
+pytest -q
+
 ## Endpoint de conversation
 
 `POST /v1/conversation`

@@ -7,8 +7,12 @@ from fastapi.testclient import TestClient
 
 
 APP_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_SRC = REPO_ROOT / "src" / "presentation.application"
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
+if str(REPO_SRC) not in sys.path:
+    sys.path.insert(0, str(REPO_SRC))
 
 from main import app
 
@@ -31,6 +35,8 @@ class SolveEquationRouteTests(unittest.TestCase):
         self.assertEqual(body["steps"][0]["before"], "2+2*5")
         self.assertEqual(body["steps"][0]["after"], "2+10")
         self.assertEqual(body["steps"][1]["after"], "12")
+        self.assertIn("graph", body)
+        self.assertIsNone(body["graph"])
 
     def test_solves_quadratic_equation(self) -> None:
         response = self.client.post(
@@ -43,6 +49,9 @@ class SolveEquationRouteTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["result"], "x1 = 3, x2 = 2")
         self.assertEqual(len(body["steps"]), 3)
+        self.assertIsNotNone(body["graph"])
+        self.assertEqual(body["graph"]["kind"], "quadratic")
+        self.assertEqual(body["graph"]["coefficients"], {"a": 1.0, "b": -5.0, "c": 6.0})
 
     def test_solves_system_of_equations(self) -> None:
         response = self.client.post(
@@ -55,6 +64,8 @@ class SolveEquationRouteTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["result"], "x = 3, y = 2")
         self.assertEqual(body["steps"], [])
+        self.assertIn("graph", body)
+        self.assertIsNone(body["graph"])
 
     def test_rejects_empty_equation(self) -> None:
         response = self.client.post(
@@ -114,6 +125,18 @@ class SolveEquationRouteTests(unittest.TestCase):
 
         body = response.json()
         self.assertIn("Domínio:", body["result"])
+        self.assertEqual(body["steps"], [])
+
+    def test_solves_statistics_mean(self) -> None:
+        response = self.client.post(
+            "/v1/equation/solve",
+            json={"equation": "mean: 1, 2, 3, 4", "showSteps": False},
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        body = response.json()
+        self.assertEqual(body["result"], "2.5")
         self.assertEqual(body["steps"], [])
 
 
