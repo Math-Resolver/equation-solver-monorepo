@@ -16,6 +16,11 @@ app = FastAPI()
 app.middleware("http")(remove_null_fields_middleware)
 
 
+@app.get("/v1/health", tags=["system"])
+def health_check():
+	return {"status": "ok"}
+
+
 app.include_router(equations.router)
 app.include_router(auth.router)
 app.include_router(conversation_controller.router)
