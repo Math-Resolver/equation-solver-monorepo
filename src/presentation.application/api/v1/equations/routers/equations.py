@@ -1,6 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Header, Request, Response, status
 from fastapi.responses import JSONResponse
 
+from api.v1.conversation.schemas.equation_history_response import EquationHistoryItemResponse
 from api.v1.conversation.schemas.solve_equation_request import SolveEquationRequest
 from api.v1.conversation.schemas.solve_equation_response import SolveEquationResponse, Step
 from domain.equations.dispatcher import dispatch_solver, is_supported_equation_type
@@ -9,6 +10,61 @@ import api.v1.routers.equations as compat_routers_equations
 from domain.equations.parser import parse_equation_input
 from api.v1.dependencies.service_injection import EquationHistoryEntity, get_history_repository
 router = APIRouter(prefix="/v1/equation", tags=["equation"])
+
+
+@router.get(
+    "/history",
+    response_model=list[EquationHistoryItemResponse],
+    responses={
+        200: {
+            "description": "Returns equation history for authenticated user",
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "equation": "2*x + 5 = 15",
+                            "result": "x = 5",
+                            "steps": [
+                                {
+                                    "rule": "subtract 5 from both sides",
+                                    "before": "2*x + 5 = 15",
+                                    "after": "2*x = 10"
+                                },
+                                {
+                                    "rule": "divide both sides by 2",
+                                    "before": "2*x = 10",
+                                    "after": "x = 5"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+    }
+)
+async def get_equation_history(
+    authorization: str = Header(..., alias="Authorization", description="Bearer <jwt-token>"),
+) -> list[EquationHistoryItemResponse]:
+    _ = authorization
+    return [
+        EquationHistoryItemResponse(
+            equation="2*x + 5 = 15",
+            result="x = 5",
+            steps=[
+                Step(rule="subtract 5 from both sides", before="2*x + 5 = 15", after="2*x = 10"),
+                Step(rule="divide both sides by 2", before="2*x = 10", after="x = 5"),
+            ],
+        ),
+        EquationHistoryItemResponse(
+            equation="x^2 - 5x + 6 = 0",
+            result="x1 = 3, x2 = 2",
+            steps=[
+                Step(rule="factorization", before="x^2 - 5x + 6 = 0", after="(x - 2)(x - 3) = 0"),
+                Step(rule="zero product", before="(x - 2)(x - 3) = 0", after="x = 2 or x = 3"),
+            ],
+        ),
+    ]
 
 
 def _extract_username_from_request(request: Request) -> str | None:
