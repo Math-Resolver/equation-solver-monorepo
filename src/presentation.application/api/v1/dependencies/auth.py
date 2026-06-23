@@ -1,12 +1,11 @@
-import base64
-import json
-
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import status
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel
+
+from api.v1.auth.token_utils import decode_and_validate_token
 
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -37,15 +36,8 @@ def get_current_user(
 
 
 def _extract_user_id_from_jwt(token: str) -> str | None:
-    parts = token.split(".")
-    if len(parts) != 3:
-        return None
-    payload = parts[1]
-    padding = "=" * (-len(payload) % 4)
-    try:
-        decoded_payload = base64.urlsafe_b64decode(payload + padding)
-        payload_data = json.loads(decoded_payload.decode("utf-8"))
-    except (ValueError, UnicodeDecodeError, json.JSONDecodeError):
+    payload_data = decode_and_validate_token(token, expected_type="access")
+    if payload_data is None:
         return None
     user_id = payload_data.get("sub") or payload_data.get("user_id")
     if not isinstance(user_id, str) or not user_id:
