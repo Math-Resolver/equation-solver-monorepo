@@ -139,6 +139,12 @@ class SolveEquationRouteTests(unittest.TestCase):
         self.assertEqual(body["result"], "2.5")
         self.assertEqual(body["steps"], [])
 
+def test_rejects_missing_equation_field(self) -> None:
+        response = self.client.post(
+            "/v1/equation/solve",
+            json={"showSteps": True}, 
+        )
+        self.assertEqual(response.status_code, 422)
 
 if __name__ == "__main__":
     unittest.main()
